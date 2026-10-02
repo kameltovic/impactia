@@ -246,21 +246,33 @@ function ecoKpis(r, eco, req) {
         c: color(d), icon: d.icon, label: d.label, count: { key: d.key, v: x.mid }, value: fmt(d, x.mid),
         sub: `Fourchette ${fmt(d, x.min)} – ${fmt(d, x.max)}<br>${perLines(d, x.mid, p.requestsYear, p.outTokens)}`,
         eq: equivalences(d, x.mid),
-        foot: `<div class="kpi-cmp">${ic("leaf")} Impact'IA, inférence : <b>${fmt(d, r.inference[d.key])}</b><span class="ratio-badge">× ${nf(r.inference[d.key] / x.mid, 2)}</span></div>`,
+        foot: `<div class="kpi-cmp"><span class="kpi-cmp-t">La différence avec nous</span>${ic("leaf")} Impact'IA, inférence : <b>${fmt(d, r.inference[d.key])}</b><span class="ratio-badge" title="Impact'IA / EcoLogits">× ${nf(r.inference[d.key] / x.mid, 2)}</span></div>`,
       });
     });
-  const extra = Object.entries(eco.impacts)
-    .filter(([k]) => ECO_EXTRA[k] && !dims.some((d) => d.ecologits === k))
-    .map(([k, x]) => kpiCard({ c: "var(--sncf-prune)", icon: ECO_EXTRA[k].icon, label: ECO_EXTRA[k].label, value: `${nf(x.mid)} ${esc(x.unit)}`, sub: `Fourchette ${nf(x.min)} – ${nf(x.max)} ${esc(x.unit)}<br>Non estimé par Impact'IA` }));
-  return `<div class="kpis">${cards.join("")}${extra.join("")}</div>
-    <p class="hint eco-note">${ic("info")} ${ECO_NOTE}</p>
-    <p class="hint">Modèle EcoLogits <code>${esc(req.body.model_name)}</code>, zone ${esc(req.body.electricity_mix_zone)} : requête moyenne de ${int(req.body.output_token_count)} tokens de sortie en ${nf(req.body.request_latency)} s, × ${int(req.requests)} requêtes par an ; valeur affichée = milieu de la fourchette.${req.zoneNote ? ` ${esc(req.zoneNote)}` : ""}
-    ${eco.warnings.length ? `<br>${ic("triangle-alert")} EcoLogits : ${eco.warnings.map(esc).join(" ")}` : ""}
-    <br>Données envoyées à <a href="https://ecologits.ai" target="_blank" rel="noopener">api.ecologits.ai</a> : fournisseur, modèle, tokens et latence d'une requête moyenne, zone électrique.</p>`;
+  // Indicateurs qu'EcoLogits calcule mais pas Impact'IA : des étiquettes sous les cartes, pour garder les mêmes cartes dans les deux onglets.
+  const extra = Object.entries(eco.impacts).filter(([k]) => ECO_EXTRA[k] && !dims.some((d) => d.ecologits === k));
+  const meta = [
+    ["Modèle EcoLogits", `<code>${esc(req.body.model_name)}</code>`],
+    ["Zone électrique", esc(req.body.electricity_mix_zone)],
+    ["Requête moyenne", `${int(req.body.output_token_count)} tokens · ${nf(req.body.request_latency)} s`],
+    ["Requêtes par an", int(req.requests)],
+    ["Valeur affichée", "milieu de la fourchette"],
+  ];
+  return `<div class="kpis">${cards.join("")}</div>
+    ${extra.length ? `<div class="eco-extra"><span class="eco-extra-t">EcoLogits estime aussi</span>${extra
+      .map(([k, x]) => `<span class="pill">${ic(ECO_EXTRA[k].icon)}<span>${ECO_EXTRA[k].label}</span><b>${nf(x.mid)} ${esc(x.unit)}</b><small>/ an</small></span>`)
+      .join("")}<span class="eco-extra-n">Sans équivalent dans Impact'IA</span></div>` : ""}
+    <div class="eco-info">
+      <p>${ic("info")}<span>${ECO_NOTE}</span></p>
+      <div class="eco-meta">${meta.map(([l, v]) => `<span><small>${l}</small>${v}</span>`).join("")}</div>
+      ${req.zoneNote ? `<p>${ic("triangle-alert")}<span>${esc(req.zoneNote)}</span></p>` : ""}
+      ${eco.warnings.length ? `<p class="warn">${ic("triangle-alert")}<span>Avertissement EcoLogits : ${eco.warnings.map(esc).join(" ")}</span></p>` : ""}
+      <p class="sent">Données envoyées à <a href="https://ecologits.ai" target="_blank" rel="noopener">api.ecologits.ai</a> : fournisseur, modèle, tokens et latence d'une requête moyenne, zone électrique.</p>
+    </div>`;
 }
 
 const ecoLoading = () =>
-  `<div class="kpis">${ecoDims().map((d) => kpiCard({ c: color(d), icon: d.icon, label: d.label, value: "…", sub: `${ic("loader")} Interrogation d'EcoLogits…` })).join("")}</div><p class="hint eco-note">${ic("info")} ${ECO_NOTE}</p>`;
+  `<div class="kpis">${ecoDims().map((d) => kpiCard({ c: color(d), icon: d.icon, label: d.label, value: "…", sub: `${ic("loader")} Interrogation d'EcoLogits…` })).join("")}</div><div class="eco-info"><p>${ic("info")}<span>${ECO_NOTE}</span></p></div>`;
 
 function renderKpis() {
   const area = $("#kpi-area");

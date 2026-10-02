@@ -75,11 +75,13 @@ fieldset { border: 0; padding: 0; margin: 0; }
 
 .summary { margin: 0 0 16px; color: var(--muted); }
 .summary b { color: var(--text); }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); gap: 16px; }
 @media (max-width: 700px) { .kpis { grid-template-columns: 1fr; } }
-.kpi { border-radius: 10px; padding: 18px; background: color-mix(in srgb, var(--c) 6%, transparent); border: 1px solid color-mix(in srgb, var(--c) 28%, transparent); }
+.kpi { container-type: inline-size; min-width: 0; border-radius: 10px; padding: 18px; background: color-mix(in srgb, var(--c) 6%, transparent); border: 1px solid color-mix(in srgb, var(--c) 28%, transparent); }
 .kpi .t { font-size: 13px; color: var(--muted); }
-.kpi .v { font-size: clamp(24px, 2.4vw, 34px); font-weight: 700; margin: 2px 0 6px; white-space: nowrap; }
+/* la valeur s'adapte à la largeur de la carte ; « / an » peut passer à la ligne */
+.kpi .v { font-size: clamp(20px, 11cqi, 34px); font-weight: 700; margin: 2px 0 6px; line-height: 1.15; }
+.kpi .v > span { white-space: nowrap; }
 .kpi .v small { font-size: 14px; font-weight: 400; color: var(--muted); }
 .kpi .s { font-size: 13px; color: var(--muted); }
 .kpi .eq { margin-top: 8px; font-size: 13px; }
@@ -106,7 +108,8 @@ td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-num
 
 .cmp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 4px; }
 .cmp-grid label { margin-top: 0; }
-.cmp-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; }
+.cmp-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 24px; }
+.cmp-cols > div, .kpis > *, .tiles > * { min-width: 0; }
 @media (max-width: 1300px) { .cmp-cols { grid-template-columns: 1fr; gap: 0; } }
 @media (max-width: 700px) { .cmp-grid { grid-template-columns: 1fr 1fr; } }
 .cmp td:first-child { width: 36%; }
@@ -173,7 +176,7 @@ label .logo { margin-right: 4px; }
 .practice .ph { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--c); }
 .practice .ph h2 { margin: 0; font-size: 18px; }
 .practice .num { font-size: 13px; font-weight: 700; color: var(--c); font-variant-numeric: tabular-nums; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 12px; }
 .tile { position: relative; overflow: hidden; padding: 16px 18px; min-height: 112px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); transition: border-color .15s; }
 .tile:hover { border-color: color-mix(in srgb, var(--c) 45%, var(--line)); }
 .tile .bg-ic { position: absolute; right: -14px; bottom: -18px; width: 104px; height: 104px; stroke-width: 1.4; color: var(--c); opacity: .09; transform: rotate(-14deg); pointer-events: none; }
@@ -213,4 +216,22 @@ label .logo { margin-right: 4px; }
 .kpi-cmp { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--c) 25%, transparent); font-size: 13px; }
 .kpi-cmp .lucide { color: var(--sncf-vert); }
 .ratio-badge { margin-left: auto; padding: 1px 8px; border-radius: 99px; background: color-mix(in srgb, var(--c) 16%, transparent); color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums; }
-.eco-note { margin-top: 14px; }
+.kpi-cmp-t { flex-basis: 100%; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+/* Sous les cartes EcoLogits : indicateurs en plus (étiquettes) et paramètres de l'estimation */
+.eco-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; }
+.eco-extra-t { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.eco-extra-n { font-size: 12px; color: var(--muted); }
+.pill { display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: 999px; background: color-mix(in srgb, var(--sncf-prune) 10%, var(--card)); border: 1px solid color-mix(in srgb, var(--sncf-prune) 30%, var(--line)); font-size: 14px; }
+.pill .lucide { align-self: center; width: 16px; height: 16px; color: var(--sncf-prune); }
+@media (prefers-color-scheme: dark) { .pill .lucide { color: #c58bd0; } }
+.pill b { font-size: 16px; font-variant-numeric: tabular-nums; }
+.pill small { color: var(--muted); font-size: 12px; }
+.eco-info { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.eco-info p { display: flex; gap: 8px; margin: 0 0 10px; line-height: 1.5; }
+.eco-info p .lucide { flex: none; width: 15px; height: 15px; margin-top: 2px; }
+.eco-info p.warn .lucide { color: var(--warn); }
+.eco-info p.sent { margin: 10px 0 0; font-size: 12px; }
+.eco-meta { display: flex; flex-wrap: wrap; gap: 8px; }
+.eco-meta > span { display: inline-flex; flex-direction: column; padding: 6px 10px; border-radius: 8px; background: var(--card); border: 1px solid var(--line); color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.eco-meta small { font-size: 11px; font-weight: 500; color: var(--muted); }
