@@ -36,7 +36,7 @@ h1 span { color: var(--sncf-carmillon); }
 header p { margin: 0; color: #c9ced6; font-size: 14px; }
 
 .app { flex: 1; display: grid; grid-template-columns: 330px 1fr; min-height: 0; }
-aside { background: var(--card); border-right: 1px solid var(--line); overflow-y: auto; padding: 20px; }
+aside { background: var(--card); border-right: 1px solid var(--line); overflow-y: auto; padding: 0; }
 .content { overflow-y: auto; padding: 20px 24px; }
 @media (max-width: 900px) {
   body { display: block; height: auto; }
@@ -52,16 +52,37 @@ h3 { font-size: 12px; margin: 16px 0 8px; color: var(--muted); text-transform: u
 .span-12 { grid-column: span 12; } .span-7 { grid-column: span 7; } .span-5 { grid-column: span 5; }
 @media (max-width: 1200px) { .span-7, .span-5 { grid-column: span 12; } }
 
-label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
-label > .lucide { width: 14px; height: 14px; vertical-align: -2px; }
-input, select { width: 100%; padding: 8px 10px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+label { display: block; }
+input, select { width: 100%; padding: 9px 11px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 fieldset { border: 0; padding: 0; margin: 0; }
-.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
-.seg label { flex: 1; margin: 0; text-align: center; padding: 8px; cursor: pointer; color: var(--text); }
+
+/* Barre latérale */
+.side-head { padding: 22px 22px 14px; border-bottom: 1px solid var(--line); }
+.side-head h2 { margin: 2px 0 0; font-size: 20px; }
+.side-sec { padding: 18px 22px 20px; border-bottom: 1px solid var(--line); }
+.side-sec h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; color: var(--text); font-size: 12px; letter-spacing: .08em; }
+.side-sec h3 span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--sncf-carbone); color: #fff; font-size: 11px; letter-spacing: 0; }
+@media (prefers-color-scheme: dark) { .side-sec h3 span { background: var(--accent); } }
+.field { margin: 14px 0 6px; }
+.field:first-child, h3 + .field { margin-top: 0; }
+.lbl { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.ctl { display: flex; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; transition: border-color .15s, box-shadow .15s; }
+.ctl:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+.ctl > .lucide { width: 16px; height: 16px; margin-left: 11px; color: var(--muted); flex: none; }
+.ctl input { border: 0; background: transparent; padding: 10px 8px 10px 9px; min-width: 0; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ctl input:focus-visible { outline: 0; }
+.ctl .unit { padding: 0 11px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.seg { display: flex; gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+.seg label { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 6px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 600; transition: background .15s, color .15s; }
+.seg label .lucide { width: 15px; height: 15px; }
 .seg input { position: absolute; opacity: 0; width: 1px; }
-.seg label:has(input:checked) { background: var(--accent); color: #fff; font-weight: 600; }
-.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+.seg label:hover { color: var(--text); }
+.seg label:has(input:checked) { background: var(--card); color: var(--accent); box-shadow: 0 1px 3px rgb(0 0 0 / .12), 0 0 0 1px var(--line); }
+.seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.seg-3 + div .field { margin-top: 14px; }
+.ef { margin: 12px 0 0; padding: 10px 12px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 7%, transparent); font-size: 12.5px; color: var(--muted); }
+.ef b { color: var(--text); }
 .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
 .summary { margin: 0 0 16px; color: var(--muted); }
@@ -81,7 +102,11 @@ table { width: 100%; border-collapse: collapse; font-size: 14px; }
 th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 th { font-weight: 600; color: var(--muted); font-size: 12px; }
 td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.bar { height: 8px; border-radius: 4px; background: var(--c, var(--accent)); min-width: 1px; }
+.bar { height: 8px; border-radius: 4px; background: var(--c, var(--accent)); min-width: 1px; width: 0; }
+[data-w] { transition: width .9s cubic-bezier(.2, .8, .2, 1); }
+.split [data-w] { width: 0; }
+.kpi .v span { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { [data-w] { transition: none; } }
 .bars { min-width: 90px; }
 .scroll { overflow-x: auto; }
 .split { display: flex; height: 26px; border-radius: 4px; overflow: hidden; font-size: 12px; color: #fff; font-weight: 600; }
@@ -196,54 +221,64 @@ label .logo { margin-right: 4px; }
 <div class="app">
   <aside>
     <form id="form" autocomplete="off">
-      <h2><i data-lucide="sliders-horizontal" class="h-ic" aria-hidden="true"></i>Mon projet</h2>
-      <label id="phase-l"><i data-lucide="flag" aria-hidden="true"></i> Phase du projet</label>
-      <div class="seg" role="radiogroup" aria-labelledby="phase-l">
-        <label><input type="radio" name="phase" value="conception">Conception</label>
-        <label><input type="radio" name="phase" value="production" checked>Production</label>
-      </div>
+      <div class="side-head"><span class="eyebrow">Paramètres</span><h2>Mon projet</h2></div>
 
-      <label for="provider"><i data-lucide="building-2" aria-hidden="true"></i> Fournisseur</label>
-      <select id="provider" name="provider"></select>
-      <label for="model"><i data-lucide="bot" aria-hidden="true"></i> Modèle</label>
-      <select id="model" name="model"></select>
+      <section class="side-sec">
+        <h3><span>1</span>Phase du projet</h3>
+        <div class="seg" role="radiogroup" aria-label="Phase du projet">
+          <label><input type="radio" name="phase" value="conception"><i data-lucide="lightbulb" aria-hidden="true"></i>Conception</label>
+          <label><input type="radio" name="phase" value="production" checked><i data-lucide="rocket" aria-hidden="true"></i>Production</label>
+        </div>
+      </section>
 
-      <fieldset data-phase="production">
-        <label for="requestsPerMonth"><i data-lucide="message-square" aria-hidden="true"></i> Requêtes par mois</label>
-        <input id="requestsPerMonth" name="requestsPerMonth" type="number" min="0" step="any" value="100000" required>
-        <label for="inputTokensPerMonth"><i data-lucide="log-in" aria-hidden="true"></i> Tokens d'entrée par mois</label>
-        <input id="inputTokensPerMonth" name="inputTokensPerMonth" type="number" min="0" step="any" value="100000000" required>
-        <label for="outputTokensPerMonth"><i data-lucide="log-out" aria-hidden="true"></i> Tokens de sortie par mois</label>
-        <input id="outputTokensPerMonth" name="outputTokensPerMonth" type="number" min="0" step="any" value="100000000" required>
-        <label for="embeddingTokensPerMonth"><i data-lucide="layers" aria-hidden="true"></i> Tokens d'embedding (RAG) par mois</label>
-        <input id="embeddingTokensPerMonth" name="embeddingTokensPerMonth" type="number" min="0" step="any" value="1000000000" required>
-      </fieldset>
+      <section class="side-sec">
+        <h3><span>2</span>Modèle d'IA</h3>
+        <label class="field" for="provider"><span class="lbl">Fournisseur</span></label>
+        <select id="provider" name="provider"></select>
+        <label class="field" for="model"><span class="lbl">Modèle</span></label>
+        <select id="model" name="model"></select>
+      </section>
 
-      <fieldset data-phase="conception" hidden>
-        <label for="users"><i data-lucide="users" aria-hidden="true"></i> Nombre d'utilisateurs de l'outil</label>
-        <input id="users" name="users" type="number" min="0" step="1" value="1" required>
-        <label for="requestsPerDay"><i data-lucide="calendar-days" aria-hidden="true"></i> Requêtes par jour et par utilisateur</label>
-        <input id="requestsPerDay" name="requestsPerDay" type="number" min="0" step="any" value="1" required>
-        <label for="requestTokens"><i data-lucide="ruler" aria-hidden="true"></i> Taille typique d'une requête</label>
-        <select id="requestTokens" name="requestTokens"></select>
-        <p class="hint">Hypothèse du classeur : tokens d'entrée = 5 × tokens de sortie, pas d'embedding.</p>
-      </fieldset>
+      <section class="side-sec">
+        <h3><span>3</span>Volumes d'usage</h3>
+        <fieldset data-phase="production">
+        <label class="field" for="requestsPerMonth"><span class="lbl">Requêtes</span>
+          <span class="ctl"><i data-lucide="message-square" aria-hidden="true"></i><input id="requestsPerMonth" name="requestsPerMonth" class="num" inputmode="numeric" autocomplete="off" value="100 000"><span class="unit">/ mois</span></span></label>
+        <label class="field" for="inputTokensPerMonth"><span class="lbl">Tokens d'entrée</span>
+          <span class="ctl"><i data-lucide="log-in" aria-hidden="true"></i><input id="inputTokensPerMonth" name="inputTokensPerMonth" class="num" inputmode="numeric" autocomplete="off" value="100 000 000"><span class="unit">/ mois</span></span></label>
+        <label class="field" for="outputTokensPerMonth"><span class="lbl">Tokens de sortie</span>
+          <span class="ctl"><i data-lucide="log-out" aria-hidden="true"></i><input id="outputTokensPerMonth" name="outputTokensPerMonth" class="num" inputmode="numeric" autocomplete="off" value="100 000 000"><span class="unit">/ mois</span></span></label>
+        <label class="field" for="embeddingTokensPerMonth"><span class="lbl">Tokens d'embedding (RAG)</span>
+          <span class="ctl"><i data-lucide="layers" aria-hidden="true"></i><input id="embeddingTokensPerMonth" name="embeddingTokensPerMonth" class="num" inputmode="numeric" autocomplete="off" value="1 000 000 000"><span class="unit">/ mois</span></span></label>
+        </fieldset>
+        <fieldset data-phase="conception" hidden>
+        <label class="field" for="users"><span class="lbl">Utilisateurs de l'outil</span>
+          <span class="ctl"><i data-lucide="users" aria-hidden="true"></i><input id="users" name="users" class="num" inputmode="numeric" autocomplete="off" value="1"><span class="unit">pers.</span></span></label>
+        <label class="field" for="requestsPerDay"><span class="lbl">Requêtes par utilisateur</span>
+          <span class="ctl"><i data-lucide="calendar-days" aria-hidden="true"></i><input id="requestsPerDay" name="requestsPerDay" class="num" inputmode="numeric" autocomplete="off" value="1"><span class="unit">/ jour</span></span></label>
+          <label class="field" for="requestTokens"><span class="lbl">Taille typique d'une requête</span></label>
+          <select id="requestTokens" name="requestTokens"></select>
+          <p class="hint">Hypothèse du classeur : tokens d'entrée = 5 × tokens de sortie, pas d'embedding.</p>
+        </fieldset>
+      </section>
 
-      <label for="mixMode"><i data-lucide="plug-zap" aria-hidden="true"></i> Mix électrique à l'inférence</label>
-      <select id="mixMode" name="mixMode">
-        <option value="france">Pays inconnu (France par défaut)</option>
-        <option value="country">Je connais le pays d'inférence</option>
-        <option value="custom">Je renseigne mon intensité carbone</option>
-      </select>
-      <div data-mix="country" hidden>
-        <label for="country"><i data-lucide="map-pin" aria-hidden="true"></i> L'inférence a lieu en / au</label>
-        <select id="country" name="country"></select>
-      </div>
-      <div data-mix="custom" hidden>
-        <label for="customEf"><i data-lucide="factory" aria-hidden="true"></i> Intensité carbone (kg CO₂e / kWh)</label>
-        <input id="customEf" name="customEf" type="number" min="0" step="any" value="0.1">
-      </div>
-      <p class="hint" id="ef-hint"></p>
+      <section class="side-sec">
+        <h3><span>4</span>Électricité à l'inférence</h3>
+        <div class="seg seg-3" role="radiogroup" aria-label="Mix électrique à l'inférence">
+          <label><input type="radio" name="mixMode" value="france" checked>France</label>
+          <label><input type="radio" name="mixMode" value="country">Pays</label>
+          <label><input type="radio" name="mixMode" value="custom">Perso.</label>
+        </div>
+        <div data-mix="country" hidden>
+          <label class="field" for="country"><span class="lbl">L'inférence a lieu en / au</span></label>
+          <select id="country" name="country"></select>
+        </div>
+        <div data-mix="custom" hidden>
+          <label class="field" for="customEf"><span class="lbl">Intensité carbone</span>
+            <span class="ctl"><i data-lucide="factory" aria-hidden="true"></i><input id="customEf" name="customEf" inputmode="decimal" autocomplete="off" value="0,1"><span class="unit">kg CO₂e/kWh</span></span></label>
+        </div>
+        <p class="ef" id="ef-hint"></p>
+      </section>
     </form>
   </aside>
 

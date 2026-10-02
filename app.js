@@ -20,14 +20,14 @@ const FLAG = { France: "fr", "Autre (monde)": "un", "Europe (UE27)": "eu", USA: 
 // ── Formatage ──
 const nf = (v, d = 3) => new Intl.NumberFormat("fr-FR", { maximumSignificantDigits: d }).format(v);
 const int = (v) => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(v);
-const scale = (v, units) => {
-  const [div, u] = units.find(([d]) => Math.abs(v) >= d) ?? units.at(-1);
+const scale = (v, units, ref = v) => {
+  const [div, u] = units.find(([d]) => Math.abs(ref) >= d) ?? units.at(-1);
   return `${nf(v / div)} ${u}`;
 };
 const fmt = {
-  kwh: (v) => scale(v, [[1000, "MWh"], [1, "kWh"], [1e-3, "Wh"], [1e-6, "mWh"]]),
-  gwp: (v) => scale(v, [[1000, "t CO₂e"], [1, "kg CO₂e"], [1e-3, "g CO₂e"], [1e-6, "mg CO₂e"]]),
-  water: (v) => scale(v, [[1000, "m³"], [1, "L"], [1e-3, "mL"]]),
+  kwh: (v, ref) => scale(v, [[1000, "MWh"], [1, "kWh"], [1e-3, "Wh"], [1e-6, "mWh"]], ref),
+  gwp: (v, ref) => scale(v, [[1000, "t CO₂e"], [1, "kg CO₂e"], [1e-3, "g CO₂e"], [1e-6, "mg CO₂e"]], ref),
+  water: (v, ref) => scale(v, [[1000, "m³"], [1, "L"], [1e-3, "mL"]], ref),
 };
 const IND = [
   { k: "kwh", t: "Consommation d'électricité", c: "var(--elec)", i: "zap" },
@@ -49,6 +49,7 @@ const tsModel = new TomSelect("#model", {
   searchField: ["text"],
   render: opt((d) => `<div class="opt">${logo(d.provider)}<span>${esc(d.text)}</span><span class="badge">${esc(d.category)}</span></div>`),
 });
+new TomSelect("#requestTokens", { controlInput: null });
 new TomSelect("#country", { controlInput: null, render: opt((d) => `<div class="opt"><span class="fi fi-${FLAG[d.value] ?? "xx"}"></span>${esc(d.text)}</div>`) });
 
 function fillModels(sel) {
@@ -62,7 +63,7 @@ fillModels("GPT-4o");
 
 function readInput() {
   const d = Object.fromEntries(new FormData(form));
-  const num = (k) => Math.max(0, Number(d[k]) || 0);
+  const num = (k) => Math.max(0, Number(String(d[k] ?? "").replace(/[\s\u202f]/g, "").replace(",", ".")) || 0);
   return {
     model: d.model,
     phase: d.phase,
@@ -81,7 +82,7 @@ function readInput() {
 
 // ── Rendu des résultats ──
 const pct = (v, t) => (t > 0 ? (100 * v) / t : 0);
-const bar = (v, max, c) => `<div class="bar" style="width:${pct(v, max).toFixed(2)}%;--c:${c}"></div>`;
+const bar = (v, max, c) => `<div class="bar" data-w="${pct(v, max).toFixed(2)}" style="--c:${c}"></div>`;
 const h2 = (i, t) => `<h2>${ic(i, "h-ic")}${t}</h2>`;
 
 function render() {
@@ -96,7 +97,7 @@ function render() {
     $("#results").innerHTML = `<div class="card span-12"><p>Calcul impossible : ${esc(e.message)}</p></div>`;
     return;
   }
-  $("#ef-hint").textContent = `Facteur retenu : ${nf(r.project.ef)} kg CO₂e / kWh (entraînement : mix mondial 0,458).`;
+  $("#ef-hint").innerHTML = `Facteur retenu : <b>${nf(r.project.ef)} kg CO₂e/kWh</b><br>Entraînement : mix mondial 0,458`;
   const p = r.project;
   const T = r.total;
   const eq = {
@@ -130,7 +131,7 @@ function render() {
     <div class="kpis">
       ${IND.map(({ k, t, c, i }) => `<div class="kpi" style="--c:${c}">
         <div class="t"><span class="chip">${ic(i)}</span>${t}</div>
-        <div class="v">${fmt[k](T[k])} <small>/ an</small></div>
+        <div class="v"><span data-count="${k}" data-v="${T[k]}">${fmt[k](T[k])}</span> <small>/ an</small></div>
         <div class="s">${per(k)}</div>
         <ul class="eq">${eq[k].map(([ei, et], n) => `<li>${ic(ei)}${n ? "ou " : "≈ "}${et}</li>`).join("")}</ul>
       </div>`).join("")}
@@ -144,7 +145,7 @@ function render() {
     ${IND.map(({ k, t, i }) => {
       const a = pct(r.training[k], T[k]);
       return `<div class="split-row"><span>${ic(i, "muted")} ${t}<br><small class="ratio">entraînement ${nf(a, 2)} %</small></span><div class="split" role="img" aria-label="${t} : entraînement ${nf(a, 2)} %, inférence ${nf(100 - a, 2)} %">
-        <div style="width:${a}%;background:var(--train)">${a >= 20 ? nf(a, 2) + " %" : ""}</div><div style="width:${100 - a}%;background:var(--infer)">${100 - a >= 20 ? nf(100 - a, 2) + " %" : ""}</div></div></div>`;
+        <div data-w="${a}" style="background:var(--train)">${a >= 20 ? nf(a, 2) + " %" : ""}</div><div data-w="${100 - a}" style="background:var(--infer)">${100 - a >= 20 ? nf(100 - a, 2) + " %" : ""}</div></div></div>`;
     }).join("")}
     <p class="hint">${ic("info")} Hébergement estimé : ${r.gpus} GPU — PUE ${nf(r.model.pue)}, WUE ${nf(r.model.wue)} L/kWh.</p>
   </section>
@@ -184,6 +185,40 @@ function render() {
       .join("")}</tbody></table></div></div>`).join("")}</div>
   </section>`;
   icons();
+  animate();
+}
+
+// ── Animations : jauges qui se remplissent (depuis leur valeur précédente) et compteurs ──
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const prevW = new Map();
+const prevV = {};
+const grow = (el) => (el.style.width = `${el.dataset.w}%`);
+const seen = new IntersectionObserver((es) => es.forEach((e) => e.isIntersecting && (grow(e.target), seen.unobserve(e.target))), { threshold: 0.3 });
+function animate() {
+  document.querySelectorAll("#results [data-w]").forEach((el, n) => {
+    const from = prevW.get(n);
+    prevW.set(n, el.dataset.w);
+    el.style.width = `${reduceMotion ? el.dataset.w : (from ?? 0)}%`;
+    if (reduceMotion) return;
+    if (from === undefined) seen.observe(el); // première apparition : se remplit quand la jauge devient visible
+    else requestAnimationFrame(() => requestAnimationFrame(() => grow(el)));
+  });
+  document.querySelectorAll("#results [data-count]").forEach((el) => {
+    const k = el.dataset.count;
+    const to = Number(el.dataset.v);
+    const from = prevV[k] ?? 0;
+    prevV[k] = to;
+    if (reduceMotion || from === to) return;
+    el.textContent = fmt[k](from, to);
+    const t0 = performance.now();
+    const dur = from ? 500 : 1200;
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / dur);
+      el.textContent = fmt[k](from + (to - from) * (1 - (1 - p) ** 3), to);
+      if (p < 1 && el.isConnected) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
 }
 
 // ── Bonnes pratiques (statiques, issues de l'onglet ♻️ du classeur) ──
@@ -241,7 +276,20 @@ $("#practices").innerHTML = `
     <ul class="refs">${REFS.map(([t, y, u]) => `<li><a href="${u}" target="_blank" rel="noopener"><span>${esc(t)}</span><small>${y} · ${new URL(u).hostname.replace(/^www\./, "")}</small></a>${ic("arrow-up-right")}</li>`).join("")}</ul>
   </section>`;
 
-form.addEventListener("input", render);
+// Séparateurs de milliers pendant la saisie, curseur conservé
+const grp = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+form.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.classList?.contains("num")) {
+    const digitsBefore = el.value.slice(0, el.selectionStart).replace(/\D/g, "").length;
+    const digits = el.value.replace(/\D/g, "");
+    el.value = digits ? grp.format(Number(digits)).replace(/\u202f/g, " ") : "";
+    let pos = 0;
+    for (let seen = 0; pos < el.value.length && seen < digitsBefore; pos++) if (/\d/.test(el.value[pos])) seen++;
+    el.setSelectionRange(pos, pos);
+  }
+  render();
+});
 form.addEventListener("change", (e) => {
   if (e.target.id === "provider") fillModels();
   render();
