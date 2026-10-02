@@ -108,16 +108,7 @@ Elles sont reproduites telles quelles pour rester fidèle aux chiffres publiés.
 
 ## 5. Écarts entre le guide méthodologique et le classeur
 
-En vérifiant le portage, nous avons relevé des différences entre le guide méthodologique (v1.0, 07/2026) et le classeur. Le moteur suit le classeur ; ces points relèvent d'un arbitrage des auteurs. Ordre de grandeur des effets, pour Claude Sonnet 4.5 en Production (100 M de tokens d'entrée et de sortie par mois, 1 Md de tokens d'embedding, mix France) :
-
-1. **Amortissement de l'entraînement** : le guide retient une part d'inférence de 20 % de la capacité de calcul (p. 36), contre 0,8 dans le classeur ; une efficacité de 0,5 × 0,5 × (1/PUE) × 0,7 (p. 37), contre 0,85² ; et 1,4·10¹² FLOP/W (p. 25), contre 2,25·10¹². Cumulés, les paramètres du guide multiplient l'entraînement par environ 50. Le guide annonce un entraînement final de l'ordre de 200 % de l'inférence (p. 16) ; le classeur en donne environ 20 %.
-2. **Latence par token** : le guide donne la formule Ecologits (p. 40) ; le classeur utilise 1/TPS d'OpenRouter dès que la valeur existe. En médiane, la latence est 4 fois plus faible qu'avec la formule Ecologits, ce qui réduit serveur, réseau et embarqué.
-3. **Facteur bâtiment** : 0,01 kg CO₂e/kWh dans le classeur, contre 0,046 (glossaire p. 49) ou 0,0408 (p. 31) dans le guide, soit environ +30 % de GES avec le mix français.
-4. **Eau de production d'électricité** : non comptée (voir §4).
-5. **Embarqué d'un serveur** : 7 670 kg CO₂e et 7 570 m³ dans le glossaire (serveur avec GPU), contre 3 952 kg et 2 353 m³ (serveur + 8 GPU) dans le classeur.
-6. **Valeurs secondaires** : nœud du front (19,93 kg et 7,27 m³ contre 42,13 kg et 43,57 m³), disque dur (640 kg contre 1 043 kg), pare-feu (0,09 kW contre 0,095 kW), mix mondial (0,458 contre 0,473).
-7. **Cohérence d'unités** : la capacité de calcul en kW est multipliée par des FLOP/W (facteur 1 000 manquant, compensé par ailleurs) [N115-N116] ; la latence d'embedding compte la constante de 97 ms une fois par an au lieu d'une fois par requête [M126].
-8. **Références** : dans l'onglet ♻️ du classeur, le lien de l'AFNOR Spec 2314 pointe vers la page du RGESN.
+Les différences relevées entre le guide méthodologique et le classeur, et les incohérences internes du classeur, sont regroupées dans un document destiné aux auteurs : [ECARTS-GUIDE-CLASSEUR.md](ECARTS-GUIDE-CLASSEUR.md). Le moteur suit le classeur ; ces points relèvent de leur arbitrage.
 
 ## 6. Comparaison avec Ecologits (tests `test/ecologits.test.js`)
 

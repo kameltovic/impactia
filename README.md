@@ -36,6 +36,7 @@ npm test
 
 - [Guide de maintenance](docs/MAINTENANCE.md) : architecture, format de `data.json`, ajouter un modèle, un paramètre ou une dimension, publier, tester, déployer.
 - [Méthodologie](docs/METHODOLOGIE.md) : formules par étape avec les cellules Excel correspondantes, particularités du classeur conservées, écarts volontaires, écarts relevés entre le guide méthodologique et le classeur.
+- [Écarts relevés entre le guide et le classeur](docs/ECARTS-GUIDE-CLASSEUR.md) : retour destiné aux auteurs d'Impact'IA, classé par effet sur les résultats.
 
 ## Déploiement de démonstration
 
