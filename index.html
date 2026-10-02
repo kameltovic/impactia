@@ -68,13 +68,13 @@ fieldset { border: 0; padding: 0; margin: 0; }
 .summary b { color: var(--text); }
 .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 @media (max-width: 700px) { .kpis { grid-template-columns: 1fr; } }
-.kpi { border-radius: 8px; padding: 16px; background: color-mix(in srgb, var(--c) 7%, transparent); border-left: 5px solid var(--c); }
+.kpi { border-radius: 10px; padding: 18px; background: color-mix(in srgb, var(--c) 6%, transparent); border: 1px solid color-mix(in srgb, var(--c) 28%, transparent); }
 .kpi .t { font-size: 13px; color: var(--muted); }
 .kpi .v { font-size: clamp(24px, 2.4vw, 34px); font-weight: 700; margin: 2px 0 6px; white-space: nowrap; }
 .kpi .v small { font-size: 14px; font-weight: 400; color: var(--muted); }
 .kpi .s { font-size: 13px; color: var(--muted); }
 .kpi .eq { margin-top: 8px; font-size: 13px; }
-.alert { margin-top: 16px; padding: 10px 14px; border-radius: 6px; background: color-mix(in srgb, var(--warn) 10%, transparent); border-left: 4px solid var(--warn); font-size: 14px; }
+.alert { margin-top: 16px; padding: 10px 14px; border-radius: 8px; background: color-mix(in srgb, var(--warn) 8%, transparent); border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); font-size: 14px; }
 .alert.ok { --warn: var(--good); }
 
 table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -106,7 +106,6 @@ td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-num
 .bp ul { margin: 0; padding-left: 18px; font-size: 14px; }
 .bp li { margin: 4px 0; }
 
-footer { color: var(--muted); font-size: 13px; margin-top: 20px; }
 
 /* Pictos Lucide */
 .lucide { width: 16px; height: 16px; stroke-width: 2; vertical-align: -3px; flex: none; }
@@ -145,10 +144,10 @@ label .logo { margin-right: 4px; }
 .badge { margin-left: auto; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); white-space: nowrap; }
 
 /* Bonnes pratiques */
-#practices { margin-top: 36px; }
-.section-title { display: flex; gap: 12px; align-items: center; padding-top: 4px; }
-.section-title > .lucide { width: 34px; height: 34px; color: var(--sncf-vert); }
-.section-title h2 { font-size: 22px; margin: 0; }
+#practices { margin-top: 44px; }
+.section-title { padding-top: 4px; border-top: 1px solid var(--line); padding-top: 28px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--sncf-carmillon); }
+.section-title h2 { font-size: 26px; margin: 2px 0 2px; letter-spacing: -.01em; }
 .section-title p { margin: 0; color: var(--muted); }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; background: var(--sncf-carbone); color: #fff; border: 0; position: relative; overflow: hidden; }
 .stats::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--sncf-gradient); }
@@ -156,18 +155,36 @@ label .logo { margin-right: 4px; }
 .stats span { color: #c9ced6; font-size: 14px; }
 .stats .hint { grid-column: 1 / -1; color: #9aa3af; margin: 0; }
 @media (max-width: 700px) { .stats { grid-template-columns: 1fr; } }
-.practice { border-top: 4px solid var(--c); }
-.practice h2 { font-size: 17px; }
-.practice .count { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); border-radius: 99px; padding: 2px 9px; }
+.practice .ph { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--c); }
+.practice .ph h2 { margin: 0; font-size: 18px; }
+.practice .num { font-size: 13px; font-weight: 700; color: var(--c); font-variant-numeric: tabular-nums; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
-.tile { display: flex; gap: 12px; padding: 14px; border-radius: 8px; background: color-mix(in srgb, var(--c) 5%, var(--bg)); border: 1px solid color-mix(in srgb, var(--c) 18%, var(--line)); }
-.tile .chip { --c: inherit; }
-.tile h4 { margin: 0 0 4px; font-size: 14px; }
-.tile p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
-.refs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.refs li { display: flex; gap: 8px; font-size: 14px; }
-.refs .lucide { color: var(--c); margin-top: 2px; }
-footer a, .card a { color: var(--accent); }
+.tile { position: relative; overflow: hidden; padding: 16px 18px; min-height: 112px; border-radius: 6px; background: var(--card); border: 1px solid var(--line); transition: border-color .15s; }
+.tile:hover { border-color: color-mix(in srgb, var(--c) 45%, var(--line)); }
+.tile .bg-ic { position: absolute; right: -14px; bottom: -18px; width: 104px; height: 104px; stroke-width: 1.4; color: var(--c); opacity: .09; transform: rotate(-14deg); pointer-events: none; }
+.tile h4 { position: relative; margin: 0 0 6px; font-size: 14.5px; }
+.tile p { position: relative; margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; max-width: 34ch; }
+.refs { list-style: none; margin: 0; padding: 0; }
+.refs li { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); }
+.refs li:last-child { border-bottom: 0; }
+.card .refs a { flex: 1; display: grid; padding: 9px 0; color: var(--text); text-decoration: none; font-size: 14px; }
+.refs a:hover span { color: var(--accent); text-decoration: underline; }
+.refs small { color: var(--muted); font-size: 12px; }
+.refs .lucide { color: var(--muted); }
+.card a { color: var(--accent); }
+.site-footer { margin: 44px -24px -20px; background: var(--sncf-carbone); color: #c9ced6; font-size: 13.5px; position: relative; }
+.site-footer::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--sncf-gradient); }
+.site-footer .cols { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 32px; padding: 36px 24px 24px; }
+@media (max-width: 900px) { .site-footer { margin: 32px -16px -16px; } .site-footer .cols { grid-template-columns: 1fr; gap: 20px; } }
+.site-footer h3 { color: #fff; margin: 0 0 10px; letter-spacing: .08em; }
+.site-footer .brand { color: #fff; font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+.site-footer .brand span { color: var(--sncf-carmillon); }
+.site-footer p { margin: 0 0 8px; line-height: 1.55; }
+.site-footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.site-footer a { color: #fff; text-decoration: none; }
+.site-footer a:hover { text-decoration: underline; }
+.site-footer .lucide { width: 14px; height: 14px; color: #9aa3af; margin-right: 6px; }
+.site-footer .bottom { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid #253042; padding: 14px 24px; color: #8b94a3; font-size: 12.5px; }
 </style>
 </head>
 <body>
@@ -233,9 +250,31 @@ footer a, .card a { color: var(--accent); }
   <main class="content">
     <div id="results" class="grid" aria-live="polite"></div>
     <div id="practices" class="grid"></div>
-    <footer>
-      <p>Version web de la calculatrice <a href="https://github.com/SNCFdevelopers/ImpactIA">Impact'IA</a> conçue par la Direction RSE et la Direction du Numérique Responsable de SNCF avec Resilio et Wavestone. Méthodologie détaillée dans le <a href="https://github.com/SNCFdevelopers/ImpactIA/tree/main/doc">guide méthodologique</a>. Œuvre dérivée publiée sous licence <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr">CC BY-NC-SA 4.0</a>.</p>
-      <p>Ordres de grandeur estimés à partir de données publiques : à utiliser pour comparer et prioriser, pas comme une mesure.</p>
+    <footer class="site-footer">
+      <div class="cols">
+        <div>
+          <p class="brand">Impact<span>'IA</span></p>
+          <p>Estimation de l'empreinte environnementale annuelle d'un projet mobilisant un modèle d'IA générative : électricité, gaz à effet de serre et eau.</p>
+          <p>Ordres de grandeur calculés à partir de données publiques, pour comparer et prioriser — pas une mesure.</p>
+        </div>
+        <div>
+          <h3>Projet source</h3>
+          <ul>
+            <li><a href="https://github.com/SNCFdevelopers/ImpactIA" target="_blank" rel="noopener"><i data-lucide="code-xml" aria-hidden="true"></i>Dépôt Impact'IA (SNCF)</a></li>
+            <li><a href="https://github.com/SNCFdevelopers/ImpactIA/tree/main/doc" target="_blank" rel="noopener"><i data-lucide="book-open" aria-hidden="true"></i>Guide méthodologique</a></li>
+            <li><a href="https://github.com/SNCFdevelopers/ImpactIA/tree/main/src" target="_blank" rel="noopener"><i data-lucide="file-spreadsheet" aria-hidden="true"></i>Calculatrice Excel d'origine</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3>Conception</h3>
+          <p>Méthodologie et données : Direction RSE et Direction du Numérique Responsable du groupe SNCF, avec Resilio et Wavestone.</p>
+          <p>Version web indépendante, non officielle, fidèle au calcul du classeur.</p>
+        </div>
+      </div>
+      <div class="bottom">
+        <span>Œuvre dérivée sous licence <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a></span>
+        <span>Facteurs d'émission et modèles : version open source du classeur Impact'IA</span>
+      </div>
     </footer>
   </main>
 </div>

@@ -214,30 +214,31 @@ const PRACTICES = [
     ["combine", "Factorisation", "Regrouper plusieurs demandes en une seule requête."],
   ] },
 ];
+// Liens repris tels quels de l'onglet ♻️ du classeur (l'AFNOR Spec 2314 y pointe vers la page du RGESN)
 const REFS = [
-  "Référentiel général d'écoconception de services numériques (RGESN), 2024",
-  "AFNOR Spec 2314 — Référentiel général pour l'IA frugale, 2024",
-  "Université Cornell — Green LLM Techniques in Action (2026)",
-  "Université Cornell — Data-Centric Green AI (2022)",
-  "Gaël Lemaire — Qu'est-ce que la Green AI ? (2026)",
-  "Digital League — Guide RESIL IT NR (2026)",
+  ["Référentiel général d'écoconception de services numériques (RGESN)", "2024", "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/"],
+  ["AFNOR Spec 2314 — Référentiel général pour l'IA frugale", "2024", "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/"],
+  ["Green LLM Techniques in Action — Université Cornell (arXiv)", "2026", "https://arxiv.org/abs/2601.02512"],
+  ["Data-Centric Green AI — Université Cornell (arXiv)", "2022", "https://arxiv.org/abs/2204.02766"],
+  ["Qu'est-ce que la Green AI ? — Gaël Lemaire, La Maison des énergies", "2026", "https://lamaisondesenergies.fr/green-ai-intelligence-ecologique/"],
+  ["Guide RESIL IT NR — Digital League", "2026", "https://www.digital-league.org/blog/dl-media-blog-12/resilience-et-numerique-responsable-digital-league-rassemble-entreprises-et-institutions-pour-produire-un-guide-par-et-pour-les-tpe-et-pme-2910"],
 ];
 $("#practices").innerHTML = `
-  <div class="section-title span-12">${ic("sprout")}<div><h2>Bonnes pratiques d'écoconception</h2><p>Leviers activables selon la maturité de votre projet.</p></div></div>
+  <div class="section-title span-12"><div><span class="eyebrow">Écoconception</span><h2>Bonnes pratiques</h2><p>Leviers activables selon la maturité de votre projet.</p></div></div>
   <section class="card span-12 stats">
     <div><b>1 500 TWh</b><span>demande mondiale d'électricité de l'IA possible d'ici 2035</span></div>
     <div><b>≈ 3 ×</b><span>la consommation électrique annuelle de la France</span></div>
     <div><b>÷ 2</b><span>avec une IA frugale généralisée</span></div>
     <p class="hint">Source : Schneider Electric, « Artificial Intelligence and Electricity, A System Dynamics Approach », 2024.</p>
   </section>
-  ${PRACTICES.map(({ t, i, c, items }) => `
+  ${PRACTICES.map(({ t, c, items }, n) => `
   <section class="card practice ${items.length > 3 ? "span-12" : items.length > 1 ? "span-7" : "span-5"}" style="--c:${c}">
-    <h2><span class="chip">${ic(i)}</span>${t}<span class="count">${items.length}</span></h2>
-    <div class="tiles">${items.map(([ii, tt, d]) => `<article class="tile"><span class="chip sm">${ic(ii)}</span><div><h4>${tt}</h4><p>${d}</p></div></article>`).join("")}</div>
+    <div class="ph"><span class="num">0${n + 1}</span><h2>${t}</h2></div>
+    <div class="tiles">${items.map(([ii, tt, d]) => `<article class="tile">${ic(ii, "bg-ic")}<h4>${tt}</h4><p>${d}</p></article>`).join("")}</div>
   </section>`).join("")}
   <section class="card span-5 practice" style="--c:var(--sncf-prune)">
-    <h2><span class="chip">${ic("book-open")}</span>Référentiels et articles sur l'IA frugale</h2>
-    <ul class="refs">${REFS.map((x) => `<li>${ic("file-text")}${x}</li>`).join("")}</ul>
+    <div class="ph"><span class="num">0${PRACTICES.length + 1}</span><h2>Référentiels et articles</h2></div>
+    <ul class="refs">${REFS.map(([t, y, u]) => `<li><a href="${u}" target="_blank" rel="noopener"><span>${esc(t)}</span><small>${y} · ${new URL(u).hostname.replace(/^www\./, "")}</small></a>${ic("arrow-up-right")}</li>`).join("")}</ul>
   </section>`;
 
 form.addEventListener("input", render);
