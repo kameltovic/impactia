@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Impact'IA — calculatrice web</title>
 <meta name="description" content="Empreinte environnementale (électricité, GES, eau) d'un projet utilisant un modèle d'IA générative. Version web de la calculatrice Impact'IA (SNCF, Resilio, Wavestone).">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7/css/flag-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2/dist/js/tom-select.complete.min.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
 /* Palette du groupe SNCF (design system SNCF) */
 :root {
@@ -48,6 +52,7 @@ h3 { font-size: 12px; margin: 16px 0 8px; color: var(--muted); text-transform: u
 @media (max-width: 1200px) { .span-7, .span-5 { grid-column: span 12; } }
 
 label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+label > .lucide { width: 14px; height: 14px; vertical-align: -2px; }
 input, select { width: 100%; padding: 8px 10px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 fieldset { border: 0; padding: 0; margin: 0; }
@@ -101,63 +106,123 @@ td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-num
 .bp li { margin: 4px 0; }
 
 footer { color: var(--muted); font-size: 13px; margin-top: 20px; }
+
+/* Pictos Lucide */
+.lucide { width: 16px; height: 16px; stroke-width: 2; vertical-align: -3px; flex: none; }
+.muted { color: var(--muted); }
+h2 { display: flex; align-items: center; gap: 8px; }
+h2 > .h-ic { color: var(--accent); width: 18px; height: 18px; }
+h3 .lucide, th .lucide { width: 13px; height: 13px; vertical-align: -2px; }
+.chip { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 8px; background: color-mix(in srgb, var(--c, var(--accent)) 15%, transparent); color: var(--c, var(--accent)); flex: none; }
+.chip.sm { width: 34px; height: 34px; border-radius: 50%; }
+.chip .lucide { width: 17px; height: 17px; }
+.kpi .t { display: flex; align-items: center; gap: 8px; }
+.kpi .eq { list-style: none; padding: 0; margin: 10px 0 0; }
+.kpi .eq li { display: flex; gap: 6px; align-items: center; margin: 3px 0; }
+.kpi .eq .lucide { color: var(--c); }
+.alert { display: flex; gap: 10px; align-items: flex-start; }
+.alert .lucide { color: var(--warn); margin-top: 3px; }
+td.step { white-space: nowrap; }
+td.step .lucide { color: var(--c); margin-right: 8px; }
+.hint .lucide { width: 13px; height: 13px; vertical-align: -2px; }
+.ratio .lucide { width: 12px; height: 12px; vertical-align: -1px; }
+.logo { width: 16px; height: 16px; vertical-align: -3px; border-radius: 4px; background: #fff; padding: 1px; flex: none; }
+label .logo { margin-right: 4px; }
+
+/* Listes déroulantes Tom Select aux couleurs de l'app */
+.ts-wrapper.single .ts-control, .ts-dropdown { background: var(--bg); color: var(--text); border-color: var(--line); font: inherit; }
+.ts-wrapper.single .ts-control { border-radius: 6px; padding: 8px 28px 8px 10px; box-shadow: none; background-image: none; }
+.ts-wrapper.single.input-active .ts-control { background: var(--bg); }
+.ts-wrapper.focus .ts-control { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ts-control input { color: var(--text); font: inherit; }
+.ts-dropdown { border-radius: 6px; margin-top: 4px; box-shadow: 0 8px 24px rgb(0 0 0 / .15); }
+.ts-dropdown .option { padding: 7px 10px; }
+.ts-dropdown .active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--text); }
+.ts-dropdown .selected { font-weight: 600; }
+.opt { display: flex; align-items: center; gap: 8px; width: 100%; }
+.opt .fi { width: 20px; line-height: 15px; border-radius: 2px; box-shadow: 0 0 0 1px var(--line); }
+.badge { margin-left: auto; font-size: 11px; padding: 1px 7px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); white-space: nowrap; }
+
+/* Bonnes pratiques */
+#practices { margin-top: 36px; }
+.section-title { display: flex; gap: 12px; align-items: center; padding-top: 4px; }
+.section-title > .lucide { width: 34px; height: 34px; color: var(--sncf-vert); }
+.section-title h2 { font-size: 22px; margin: 0; }
+.section-title p { margin: 0; color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; background: var(--sncf-carbone); color: #fff; border: 0; position: relative; overflow: hidden; }
+.stats::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--sncf-gradient); }
+.stats b { display: block; font-size: clamp(26px, 3vw, 38px); line-height: 1.1; }
+.stats span { color: #c9ced6; font-size: 14px; }
+.stats .hint { grid-column: 1 / -1; color: #9aa3af; margin: 0; }
+@media (max-width: 700px) { .stats { grid-template-columns: 1fr; } }
+.practice { border-top: 4px solid var(--c); }
+.practice h2 { font-size: 17px; }
+.practice .count { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); border-radius: 99px; padding: 2px 9px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.tile { display: flex; gap: 12px; padding: 14px; border-radius: 8px; background: color-mix(in srgb, var(--c) 5%, var(--bg)); border: 1px solid color-mix(in srgb, var(--c) 18%, var(--line)); }
+.tile .chip { --c: inherit; }
+.tile h4 { margin: 0 0 4px; font-size: 14px; }
+.tile p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+.refs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.refs li { display: flex; gap: 8px; font-size: 14px; }
+.refs .lucide { color: var(--c); margin-top: 2px; }
 footer a, .card a { color: var(--accent); }
 </style>
 </head>
 <body>
 <header>
-  <h1>Impact<span>'IA</span></h1>
+  <h1><i data-lucide="leaf" aria-hidden="true" style="width:22px;height:22px;color:var(--sncf-vert);vertical-align:-3px"></i> Impact<span>'IA</span></h1>
   <p>Empreinte environnementale annuelle d'un projet mobilisant un modèle d'IA générative : électricité, gaz à effet de serre, eau.</p>
 </header>
 
 <div class="app">
   <aside>
     <form id="form" autocomplete="off">
-      <h2>Mon projet</h2>
-      <label id="phase-l">Phase du projet</label>
+      <h2><i data-lucide="sliders-horizontal" class="h-ic" aria-hidden="true"></i>Mon projet</h2>
+      <label id="phase-l"><i data-lucide="flag" aria-hidden="true"></i> Phase du projet</label>
       <div class="seg" role="radiogroup" aria-labelledby="phase-l">
         <label><input type="radio" name="phase" value="conception">Conception</label>
         <label><input type="radio" name="phase" value="production" checked>Production</label>
       </div>
 
-      <label for="provider">Fournisseur</label>
+      <label for="provider"><i data-lucide="building-2" aria-hidden="true"></i> Fournisseur</label>
       <select id="provider" name="provider"></select>
-      <label for="model">Modèle</label>
+      <label for="model"><i data-lucide="bot" aria-hidden="true"></i> Modèle</label>
       <select id="model" name="model"></select>
 
       <fieldset data-phase="production">
-        <label for="requestsPerMonth">Requêtes par mois</label>
+        <label for="requestsPerMonth"><i data-lucide="message-square" aria-hidden="true"></i> Requêtes par mois</label>
         <input id="requestsPerMonth" name="requestsPerMonth" type="number" min="0" step="any" value="100000" required>
-        <label for="inputTokensPerMonth">Tokens d'entrée par mois</label>
+        <label for="inputTokensPerMonth"><i data-lucide="log-in" aria-hidden="true"></i> Tokens d'entrée par mois</label>
         <input id="inputTokensPerMonth" name="inputTokensPerMonth" type="number" min="0" step="any" value="100000000" required>
-        <label for="outputTokensPerMonth">Tokens de sortie par mois</label>
+        <label for="outputTokensPerMonth"><i data-lucide="log-out" aria-hidden="true"></i> Tokens de sortie par mois</label>
         <input id="outputTokensPerMonth" name="outputTokensPerMonth" type="number" min="0" step="any" value="100000000" required>
-        <label for="embeddingTokensPerMonth">Tokens d'embedding (RAG) par mois</label>
+        <label for="embeddingTokensPerMonth"><i data-lucide="layers" aria-hidden="true"></i> Tokens d'embedding (RAG) par mois</label>
         <input id="embeddingTokensPerMonth" name="embeddingTokensPerMonth" type="number" min="0" step="any" value="1000000000" required>
       </fieldset>
 
       <fieldset data-phase="conception" hidden>
-        <label for="users">Nombre d'utilisateurs de l'outil</label>
+        <label for="users"><i data-lucide="users" aria-hidden="true"></i> Nombre d'utilisateurs de l'outil</label>
         <input id="users" name="users" type="number" min="0" step="1" value="1" required>
-        <label for="requestsPerDay">Requêtes par jour et par utilisateur</label>
+        <label for="requestsPerDay"><i data-lucide="calendar-days" aria-hidden="true"></i> Requêtes par jour et par utilisateur</label>
         <input id="requestsPerDay" name="requestsPerDay" type="number" min="0" step="any" value="1" required>
-        <label for="requestTokens">Taille typique d'une requête</label>
+        <label for="requestTokens"><i data-lucide="ruler" aria-hidden="true"></i> Taille typique d'une requête</label>
         <select id="requestTokens" name="requestTokens"></select>
         <p class="hint">Hypothèse du classeur : tokens d'entrée = 5 × tokens de sortie, pas d'embedding.</p>
       </fieldset>
 
-      <label for="mixMode">Mix électrique à l'inférence</label>
+      <label for="mixMode"><i data-lucide="plug-zap" aria-hidden="true"></i> Mix électrique à l'inférence</label>
       <select id="mixMode" name="mixMode">
         <option value="france">Pays inconnu (France par défaut)</option>
         <option value="country">Je connais le pays d'inférence</option>
         <option value="custom">Je renseigne mon intensité carbone</option>
       </select>
       <div data-mix="country" hidden>
-        <label for="country">L'inférence a lieu en / au</label>
+        <label for="country"><i data-lucide="map-pin" aria-hidden="true"></i> L'inférence a lieu en / au</label>
         <select id="country" name="country"></select>
       </div>
       <div data-mix="custom" hidden>
-        <label for="customEf">Intensité carbone (kg CO₂e / kWh)</label>
+        <label for="customEf"><i data-lucide="factory" aria-hidden="true"></i> Intensité carbone (kg CO₂e / kWh)</label>
         <input id="customEf" name="customEf" type="number" min="0" step="any" value="0.1">
       </div>
       <p class="hint" id="ef-hint"></p>
@@ -166,6 +231,7 @@ footer a, .card a { color: var(--accent); }
 
   <main class="content">
     <div id="results" class="grid" aria-live="polite"></div>
+    <div id="practices" class="grid"></div>
     <footer>
       <p>Version web de la calculatrice <a href="https://github.com/SNCFdevelopers/ImpactIA">Impact'IA</a> conçue par la Direction RSE et la Direction du Numérique Responsable de SNCF avec Resilio et Wavestone. Méthodologie détaillée dans le <a href="https://github.com/SNCFdevelopers/ImpactIA/tree/main/doc">guide méthodologique</a>. Œuvre dérivée publiée sous licence <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr">CC BY-NC-SA 4.0</a>.</p>
       <p>Ordres de grandeur estimés à partir de données publiques : à utiliser pour comparer et prioriser, pas comme une mesure.</p>

@@ -86,7 +86,7 @@ export function compute(modelName, input) {
   const embLatency = p.embTokens > 0 ? (0.022 * ((embModel.pTotal * 1e9) / 8e9) * (p.embTokens * batch) + 97.394) / 1000 : 0; // [M126]
   const embServerKwh = (embLatency / 3600) * (f("Puissance électrique d'un GPU pour l'embedding") + serverPower / gpuPerServer) * embGpus; // [M132]
   const embNetKwh = netPower * (embLatency / 3600 / gpuPerServer) * embGpus; // [M134]
-  const embKwh = (embGpus * (embServerKwh + embNetKwh) * pue) / batch; // [N129]
+  const embKwh = ((embServerKwh + embNetKwh) * pue) / batch; // [N129] (le nombre de GPU est déjà dans M132/M134)
   const embGwp =
     embKwh * p.ef + // [N137]
     (embGpus / gpuPerServer) * serverEmb * (embLatency / (batch * serverLife)) +
