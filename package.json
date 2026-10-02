@@ -5,6 +5,15 @@
   "scripts": {
     "dev": "portless impactia-web sh -c 'python3 -m http.server $PORT'",
     "test": "node --test",
-    "extract": "uv run --with openpyxl scripts/extract.py"
-  }
+    "extract": "uv run --with openpyxl scripts/extract.py",
+    "vendor": "node scripts/vendor.mjs",
+    "excel-reference": "uv run --with openpyxl --with formulas scripts/excel-reference.py"
+  },
+  "devDependencies": {
+    "@lobehub/icons-static-svg": "^1.95.1",
+    "flag-icons": "^7.5.0",
+    "lucide": "^1.49.0",
+    "tom-select": "^2.6.2"
+  },
+  "license": "CC-BY-NC-SA-4.0"
 }

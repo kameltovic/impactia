@@ -1,0 +1,1460 @@
+{
+  "meta": {
+    "title": "Impact'IA",
+    "license": "CC BY-NC-SA 4.0",
+    "attribution": "Calculatrice Impact'IA — Direction RSE et Direction du Numérique Responsable du groupe SNCF, avec Resilio et Wavestone (https://github.com/SNCFdevelopers/ImpactIA)",
+    "defaultModel": "GPT-4o",
+    "comparisonModels": [
+      "GPT-4.1-mini",
+      "Mistral Large",
+      "Claude Sonnet 4",
+      "Gemini 2.5 flash lite"
+    ]
+  },
+  "parameters": {
+    "gpuPerServer": {
+      "label": "Nombre de GPU par serveur",
+      "group": "Serveurs et GPU",
+      "unit": "GPU",
+      "value": 8,
+      "excel": "Nombre de GPU par serveur",
+      "cell": "M133"
+    },
+    "batchSize": {
+      "label": "Batch : requêtes traitées en parallèle",
+      "group": "Serveurs et GPU",
+      "unit": "requêtes",
+      "value": 64,
+      "excel": "Batch",
+      "cell": "M179"
+    },
+    "quantizationBits": {
+      "label": "Quantification des poids",
+      "group": "Serveurs et GPU",
+      "unit": "bits",
+      "value": 16,
+      "excel": "Quantification",
+      "cell": "M170"
+    },
+    "gpuMemoryGb": {
+      "label": "Mémoire d'un GPU",
+      "group": "Serveurs et GPU",
+      "unit": "Go",
+      "value": 80,
+      "excel": "Mémoire GPU",
+      "cell": "M171"
+    },
+    "modelMemoryOverhead": {
+      "label": "Surcoût mémoire pour héberger le modèle (M = k × P × Q / 8)",
+      "group": "Serveurs et GPU",
+      "unit": "-",
+      "value": 1.2,
+      "excel": null,
+      "cell": "N168"
+    },
+    "serverPowerKw": {
+      "label": "Puissance électrique d'un serveur hors GPU",
+      "group": "Serveurs et GPU",
+      "unit": "kW",
+      "value": 1.2,
+      "excel": "Puissance électrique d'un serveur - hors GPU",
+      "cell": "M195"
+    },
+    "serverLifeYears": {
+      "label": "Durée de vie d'un serveur",
+      "group": "Serveurs et GPU",
+      "unit": "ans",
+      "value": 3,
+      "excel": "Durée de vie du serveur",
+      "cell": "M223"
+    },
+    "gpuLifeYears": {
+      "label": "Durée de vie d'un GPU",
+      "group": "Serveurs et GPU",
+      "unit": "ans",
+      "value": 3,
+      "excel": "Durée de vie d'un GPU",
+      "cell": "M224"
+    },
+    "firewallPowerKw": {
+      "label": "Puissance électrique d'un pare-feu",
+      "group": "Réseau du centre de données",
+      "unit": "kW",
+      "value": 0.09,
+      "excel": "Puissance électrique des pares-feux",
+      "cell": "M198"
+    },
+    "firewallUsage": {
+      "label": "Ratio d'usage des pare-feux",
+      "group": "Réseau du centre de données",
+      "unit": "-",
+      "value": 0.0358,
+      "excel": "Ratio d'usage pares-feux",
+      "cell": "M199"
+    },
+    "routerPowerKw": {
+      "label": "Puissance électrique d'un routeur",
+      "group": "Réseau du centre de données",
+      "unit": "kW",
+      "value": 0.09,
+      "excel": "Puissance électrique des routeurs",
+      "cell": "M200"
+    },
+    "routerUsage": {
+      "label": "Ratio d'usage des routeurs",
+      "group": "Réseau du centre de données",
+      "unit": "-",
+      "value": 0.286,
+      "excel": "Ratio d'usage routeurs",
+      "cell": "M201"
+    },
+    "switchPowerKw": {
+      "label": "Puissance électrique d'un switch",
+      "group": "Réseau du centre de données",
+      "unit": "kW",
+      "value": 0.09,
+      "excel": "Puissance électrique des switches",
+      "cell": "M202"
+    },
+    "switchUsage": {
+      "label": "Ratio d'usage des switches",
+      "group": "Réseau du centre de données",
+      "unit": "-",
+      "value": 1.468,
+      "excel": "Ratio d'usage switches",
+      "cell": "M203"
+    },
+    "networkLifeYears": {
+      "label": "Durée de vie des équipements réseau",
+      "group": "Réseau du centre de données",
+      "unit": "ans",
+      "value": 5,
+      "excel": "Durée de vie équipements réseau",
+      "cell": "M229"
+    },
+    "gpuEnergyAlpha": {
+      "label": "GPU_Energy α",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "Wh/token/Md param.",
+      "value": 1.16652731704519e-06,
+      "excel": "GPU_Energy_α",
+      "cell": "M176"
+    },
+    "gpuEnergyBeta": {
+      "label": "GPU_Energy β",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "-",
+      "value": -0.0112059210255791,
+      "excel": "GPU_Energy_β",
+      "cell": "M177"
+    },
+    "gpuEnergyGamma": {
+      "label": "GPU_Energy γ",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "Wh/token",
+      "value": 4.052928146734e-05,
+      "excel": "GPU_Energy_γ",
+      "cell": "M178"
+    },
+    "latencyAlpha": {
+      "label": "Latence α (si le TPS du modèle est inconnu)",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "s/token/Md param.",
+      "value": 0.000678508809435366,
+      "excel": "Latence_α",
+      "cell": "M184"
+    },
+    "latencyBeta": {
+      "label": "Latence β",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "s/token",
+      "value": 0.000311931031168825,
+      "excel": "Latence_β",
+      "cell": "M185"
+    },
+    "latencyGamma": {
+      "label": "Latence γ",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "s",
+      "value": 0.0194737175794733,
+      "excel": "Latence_γ",
+      "cell": "M186"
+    },
+    "prefillCoefRef": {
+      "label": "Coefficient de préremplissage de référence",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "ms/token",
+      "value": 0.062,
+      "excel": null,
+      "cell": "Modèles_IA U"
+    },
+    "prefillTtftRef": {
+      "label": "TTFT de référence du coefficient",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "s",
+      "value": 0.44,
+      "excel": null,
+      "cell": "Modèles_IA U"
+    },
+    "prefillPerRequestMs": {
+      "label": "Temps fixe de préremplissage par requête",
+      "group": "Inférence (méthode Ecologits)",
+      "unit": "ms",
+      "value": 17.88,
+      "excel": null,
+      "cell": "N191"
+    },
+    "embeddingModel": {
+      "label": "Modèle d'embedding (nom dans la liste des modèles)",
+      "group": "RAG / embedding",
+      "unit": "-",
+      "value": "text-embedding-3-large",
+      "excel": null,
+      "cell": "M124"
+    },
+    "embeddingGpus": {
+      "label": "Nombre de GPU utilisés pour l'embedding",
+      "group": "RAG / embedding",
+      "unit": "GPU",
+      "value": 1,
+      "excel": "Nombre de GPU utilisé pour l'embedding",
+      "cell": "M130"
+    },
+    "embeddingGpuPowerKw": {
+      "label": "Puissance électrique d'un GPU pour l'embedding",
+      "group": "RAG / embedding",
+      "unit": "kW",
+      "value": 0.7,
+      "excel": "Puissance électrique d'un GPU pour l'embedding",
+      "cell": "M131"
+    },
+    "embeddingLatencyCoefMs": {
+      "label": "Latence d'embedding : coefficient",
+      "group": "RAG / embedding",
+      "unit": "ms/token",
+      "value": 0.022,
+      "excel": null,
+      "cell": "M126"
+    },
+    "embeddingLatencyRefParamsB": {
+      "label": "Latence d'embedding : taille de référence du modèle",
+      "group": "RAG / embedding",
+      "unit": "Md param.",
+      "value": 8,
+      "excel": null,
+      "cell": "M126"
+    },
+    "embeddingLatencyBaseMs": {
+      "label": "Latence d'embedding : constante",
+      "group": "RAG / embedding",
+      "unit": "ms",
+      "value": 97.394,
+      "excel": null,
+      "cell": "M126"
+    },
+    "frontNodes": {
+      "label": "Nombre de nœuds",
+      "group": "Front applicatif",
+      "unit": "nœuds",
+      "value": 1,
+      "excel": "Nombre de nœuds",
+      "cell": "M148"
+    },
+    "frontNodePowerKw": {
+      "label": "Puissance électrique d'un nœud",
+      "group": "Front applicatif",
+      "unit": "kW",
+      "value": 0.0143621390739041,
+      "excel": "Puissance électrique d'un nœud",
+      "cell": "M147"
+    },
+    "frontTokensPerNode": {
+      "label": "Tokens de sortie annuels traités par un nœud",
+      "group": "Front applicatif",
+      "unit": "tokens/an",
+      "value": 1600000000,
+      "excel": "Nombre de tokens de sortie annuels des requêtes traitées par un nœud pour le front",
+      "cell": "M149"
+    },
+    "frontNodeLifeYears": {
+      "label": "Durée de vie d'un nœud 16 Go",
+      "group": "Front applicatif",
+      "unit": "ans",
+      "value": 4,
+      "excel": "Durée de vie d'un nœud 16Go",
+      "cell": "M153"
+    },
+    "frontNodesPerNetworkKit": {
+      "label": "Nœuds par lot d'équipements réseau",
+      "group": "Front applicatif",
+      "unit": "nœuds",
+      "value": 16,
+      "excel": null,
+      "cell": "N146"
+    },
+    "frontPue": {
+      "label": "PUE du front applicatif",
+      "group": "Front applicatif",
+      "unit": "-",
+      "value": 1.2,
+      "excel": null,
+      "cell": "N146"
+    },
+    "frontWue": {
+      "label": "WUE du front applicatif",
+      "group": "Front applicatif",
+      "unit": "L/kWh",
+      "value": 0.2,
+      "excel": null,
+      "cell": "N156"
+    },
+    "inferenceComputeShare": {
+      "label": "Part de la capacité de calcul dédiée à l'inférence",
+      "group": "Entraînement",
+      "unit": "-",
+      "value": 0.8,
+      "excel": "Ratio d'inférence sur la compute capacity",
+      "cell": "M118"
+    },
+    "computeEfficiency": {
+      "label": "Efficacité de calcul ε (0,85 × 0,85)",
+      "group": "Entraînement",
+      "unit": "-",
+      "value": 0.7225,
+      "excel": null,
+      "cell": "N115"
+    },
+    "modelLifetimeYears": {
+      "label": "Durée de vie d'un modèle (amortissement)",
+      "group": "Entraînement",
+      "unit": "ans",
+      "value": 1.5,
+      "excel": null,
+      "cell": "N120"
+    },
+    "activeModelsWindowMonths": {
+      "label": "Fenêtre de comptage des modèles actifs du fournisseur",
+      "group": "Entraînement",
+      "unit": "mois",
+      "value": 24,
+      "excel": null,
+      "cell": "N119"
+    },
+    "trainingFlopsDailyGrowth": {
+      "label": "FLOPs d'entraînement : croissance journalière (log10)",
+      "group": "Entraînement",
+      "unit": "-",
+      "value": 0.0006,
+      "excel": null,
+      "cell": "N92"
+    },
+    "trainingFlopsIntercept": {
+      "label": "FLOPs d'entraînement : ordonnée (log10)",
+      "group": "Entraînement",
+      "unit": "-",
+      "value": 17.151,
+      "excel": null,
+      "cell": "N92"
+    },
+    "trainingFlopsExponent": {
+      "label": "FLOPs d'entraînement : exposant sur les paramètres",
+      "group": "Entraînement",
+      "unit": "-",
+      "value": 0.541,
+      "excel": null,
+      "cell": "N92"
+    },
+    "trainingFlopsRefDate": {
+      "label": "FLOPs d'entraînement : date de référence",
+      "group": "Entraînement",
+      "unit": "date",
+      "value": "2020-01-01",
+      "excel": null,
+      "cell": "N94"
+    },
+    "rdMultiplier": {
+      "label": "Expérimentations R&D (multiple de l'entraînement final)",
+      "group": "Entraînement",
+      "unit": "×",
+      "value": 4,
+      "excel": null,
+      "cell": "N81"
+    },
+    "flopsPerTokenParam": {
+      "label": "FLOPs par token et par paramètre (C = 6 × N × D)",
+      "group": "Stockage des données d'entraînement",
+      "unit": "-",
+      "value": 6,
+      "excel": null,
+      "cell": "N65"
+    },
+    "bytesPerTrainingToken": {
+      "label": "Octets stockés par token d'entraînement",
+      "group": "Stockage des données d'entraînement",
+      "unit": "octets",
+      "value": 16,
+      "excel": null,
+      "cell": "N66"
+    },
+    "hddCapacityTb": {
+      "label": "Capacité d'un disque dur",
+      "group": "Stockage des données d'entraînement",
+      "unit": "To",
+      "value": 30,
+      "excel": null,
+      "cell": "N67"
+    },
+    "hddPowerKw": {
+      "label": "Puissance électrique d'un disque dur",
+      "group": "Stockage des données d'entraînement",
+      "unit": "kW",
+      "value": 0.0095,
+      "excel": "Puissance électrique du HDD pour le stockage dataset de l'entrainement",
+      "cell": "Bibliothèque_FE D10"
+    },
+    "hddUsageRatio": {
+      "label": "Ratio d'usage des disques durs",
+      "group": "Stockage des données d'entraînement",
+      "unit": "-",
+      "value": 0.2,
+      "excel": "Ratio d'usage HDD",
+      "cell": "M69"
+    },
+    "hddLifeYears": {
+      "label": "Durée de vie d'un disque dur",
+      "group": "Stockage des données d'entraînement",
+      "unit": "ans",
+      "value": 5,
+      "excel": "Durée de vie du HDD",
+      "cell": "M73"
+    },
+    "trainingDays": {
+      "label": "Durée d'entraînement",
+      "group": "Stockage des données d'entraînement",
+      "unit": "jours",
+      "value": 100,
+      "excel": "Durée d'entrainement",
+      "cell": "M70"
+    },
+    "conceptionInputOutputRatio": {
+      "label": "Tokens d'entrée par token de sortie",
+      "group": "Phase Conception",
+      "unit": "×",
+      "value": 5,
+      "excel": null,
+      "cell": "M30"
+    }
+  },
+  "dimensions": [
+    {
+      "key": "kwh",
+      "label": "Consommation d'électricité",
+      "unit": "kWh",
+      "color": "#ffb612",
+      "icon": "zap",
+      "scale": [
+        [
+          1000,
+          "MWh"
+        ],
+        [
+          1,
+          "kWh"
+        ],
+        [
+          0.001,
+          "Wh"
+        ],
+        [
+          1e-06,
+          "mWh"
+        ]
+      ],
+      "factors": {
+        "gridInference": 1,
+        "gridTraining": 1,
+        "building": 0,
+        "onsite": 0,
+        "server": 0,
+        "gpu": 0,
+        "firewall": 0,
+        "router": 0,
+        "switch": 0,
+        "node": 0,
+        "hdd": 0
+      },
+      "excel": {},
+      "scaleRequestNetworkByGpus": true,
+      "equivalences": [
+        {
+          "icon": "smartphone",
+          "label": "recharges de smartphone",
+          "perUnit": 100
+        },
+        {
+          "icon": "globe",
+          "label": "minutes sur Internet",
+          "perUnit": 600
+        }
+      ],
+      "thresholds": []
+    },
+    {
+      "key": "gwp",
+      "label": "Potentiel de réchauffement climatique",
+      "unit": "kg CO₂e",
+      "color": "#a1006b",
+      "colorDark": "#d63d9b",
+      "icon": "cloud",
+      "scale": [
+        [
+          1000,
+          "t CO₂e"
+        ],
+        [
+          1,
+          "kg CO₂e"
+        ],
+        [
+          0.001,
+          "g CO₂e"
+        ],
+        [
+          1e-06,
+          "mg CO₂e"
+        ]
+      ],
+      "factors": {
+        "gridInference": "mix",
+        "gridTraining": 0.458,
+        "building": 0.01,
+        "onsite": 0,
+        "server": 3952.3,
+        "gpu": 366.54,
+        "firewall": 333.79999999999995,
+        "router": 403,
+        "switch": 363,
+        "node": 19.93,
+        "hdd": 640.5
+      },
+      "excel": {
+        "gridTraining": "Facteur d'émission de l'électricité consommée Monde",
+        "building": "Facteur d'émission du batiment et de l'environnement technique",
+        "server": "GES embarqué du serveur",
+        "gpu": "GES embarqué d'un seul GPU",
+        "firewall": "GES embarqué du pare-feu",
+        "router": "GES embarqué du routeur",
+        "switch": "GES embarqué du switch",
+        "node": "GES embarqué d'un nœud 16Go",
+        "hdd": "GES embarqué du stockage HDD de l'entrainement"
+      },
+      "scaleRequestNetworkByGpus": false,
+      "equivalences": [
+        {
+          "icon": "car",
+          "label": "km en voiture",
+          "perUnit": 4.6
+        },
+        {
+          "icon": "video",
+          "label": "h de visio",
+          "perUnit": 17.5
+        }
+      ],
+      "thresholds": [
+        {
+          "value": 1000,
+          "message": "Plus de 1 000 kg CO₂e/an : le projet doit faire l'objet d'une réflexion autour de son impact environnemental."
+        },
+        {
+          "value": 10000,
+          "message": "Plus de 10 000 kg CO₂e/an : un plan d'action de mitigation et de mise en œuvre de bonnes pratiques doit être mis en place."
+        }
+      ],
+      "belowThresholds": "Moins de 1 000 kg CO₂e/an. Les bonnes pratiques ci-dessous restent utiles pour réduire l'empreinte."
+    },
+    {
+      "key": "water",
+      "label": "Utilisation d'eau",
+      "unit": "L",
+      "color": "#0088ce",
+      "icon": "droplets",
+      "scale": [
+        [
+          1000,
+          "m³"
+        ],
+        [
+          1,
+          "L"
+        ],
+        [
+          0.001,
+          "mL"
+        ]
+      ],
+      "factors": {
+        "gridInference": 0,
+        "gridTraining": 0,
+        "building": 0,
+        "onsite": 1.4,
+        "server": 1540630,
+        "gpu": 101500,
+        "firewall": 95549.99999999996,
+        "router": 114719.9999999998,
+        "switch": 103409.99999999985,
+        "node": 7270.000000000003,
+        "hdd": 163480.00000000003
+      },
+      "excel": {
+        "onsite": "CF_Aware",
+        "server": "WU du serveur (embarqué)",
+        "gpu": "WU d'un seul GPU (embarqué)",
+        "firewall": "WU du pare-feu (FR)",
+        "router": "WU du routeur (FR)",
+        "switch": "WU du switch (FR)",
+        "node": "WU d'un noeud 16Go",
+        "hdd": "WU du stockage HDD de l'entrainement (WORLD)"
+      },
+      "scaleRequestNetworkByGpus": true,
+      "equivalences": [
+        {
+          "icon": "glass-water",
+          "label": "bouteilles d'eau de 1 L",
+          "perUnit": 1
+        },
+        {
+          "icon": "coffee",
+          "label": "cafés",
+          "perUnit": 4
+        }
+      ],
+      "thresholds": []
+    }
+  ],
+  "mixes": [
+    {
+      "name": "France",
+      "flag": "fr",
+      "default": true,
+      "values": {
+        "gwp": 0.0461
+      }
+    },
+    {
+      "name": "Autre (monde)",
+      "flag": "un",
+      "default": false,
+      "values": {
+        "gwp": 0.458
+      }
+    },
+    {
+      "name": "Europe (UE27)",
+      "flag": "eu",
+      "default": false,
+      "values": {
+        "gwp": 0.2099
+      }
+    },
+    {
+      "name": "USA",
+      "flag": "us",
+      "default": false,
+      "values": {
+        "gwp": 0.3844
+      }
+    },
+    {
+      "name": "UK",
+      "flag": "gb",
+      "default": false,
+      "values": {
+        "gwp": 0.21741
+      }
+    },
+    {
+      "name": "Allemagne",
+      "flag": "de",
+      "default": false,
+      "values": {
+        "gwp": 0.32965
+      }
+    },
+    {
+      "name": "Irlande",
+      "flag": "ie",
+      "default": false,
+      "values": {
+        "gwp": 0.25654
+      }
+    },
+    {
+      "name": "Pays Bas",
+      "flag": "nl",
+      "default": false,
+      "values": {
+        "gwp": 0.25356
+      }
+    },
+    {
+      "name": "Suède",
+      "flag": "se",
+      "default": false,
+      "values": {
+        "gwp": 0.03329
+      }
+    }
+  ],
+  "requestSizes": [
+    {
+      "label": "Echange court (≈ 400 tokens)",
+      "tokens": 400
+    },
+    {
+      "label": "Réponse détaillée (≈ 1000 tokens)",
+      "tokens": 1000
+    },
+    {
+      "label": "Analyse longue (≈ 1500 tokens)",
+      "tokens": 1500
+    }
+  ],
+  "providers": {
+    "OpenAI": {
+      "logo": "vendor/logos/openai.svg"
+    },
+    "Anthropic": {
+      "logo": "vendor/logos/claude-color.svg"
+    },
+    "Mistral AI": {
+      "logo": "vendor/logos/mistral-color.svg"
+    },
+    "Google": {
+      "logo": "vendor/logos/gemini-color.svg"
+    }
+  },
+  "models": [
+    {
+      "provider": "Anthropic",
+      "name": "Claude Haiku 3",
+      "category": "Moyen",
+      "pTotal": 300,
+      "pActive": 60,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 74.2,
+      "ttft": 0.53,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2024-03-07"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Haiku 4.5",
+      "category": "Moyen",
+      "pTotal": 22,
+      "pActive": 22,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 70,
+      "ttft": 0.67,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2025-10-15"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Sonnet 3.7",
+      "category": "Moyen",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 46,
+      "ttft": 1.31,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2025-02-24"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Sonnet 4",
+      "category": "Grand",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 50,
+      "ttft": 1.31,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2025-05-22"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Sonnet 4.5",
+      "category": "Grand",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 36,
+      "ttft": 1.63,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2025-09-29"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Sonnet 4.6",
+      "category": "Grand",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 41,
+      "ttft": 1.68,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2026-02-17"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Opus 4.6",
+      "category": "Grand",
+      "pTotal": 670,
+      "pActive": 133,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 33.2,
+      "ttft": 2.45,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2026-02-05"
+    },
+    {
+      "provider": "Google",
+      "name": "Gemini 2.5 flash",
+      "category": "Moyen",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.09,
+      "wue": 0.99,
+      "tps": 66.9,
+      "ttft": 0.74,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 9000000,
+      "published": "2025-06-17"
+    },
+    {
+      "provider": "Google",
+      "name": "Gemini 2.5 flash image",
+      "category": "Hors catégorie",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.09,
+      "wue": 0.99,
+      "tps": 110.8,
+      "ttft": 5.87,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 9000000,
+      "published": "2025-10-02"
+    },
+    {
+      "provider": "Google",
+      "name": "Gemini 2.5 flash lite",
+      "category": "Petit",
+      "pTotal": 18,
+      "pActive": 18,
+      "pue": 1.09,
+      "wue": 0.99,
+      "tps": 71.5,
+      "ttft": 0.56,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 9000000,
+      "published": "2025-07-22"
+    },
+    {
+      "provider": "Google",
+      "name": "Gemini 2.5 pro",
+      "category": "Grand",
+      "pTotal": 2000,
+      "pActive": 400,
+      "pue": 1.09,
+      "wue": 0.99,
+      "tps": 91.1,
+      "ttft": 2.83,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 9000000,
+      "published": "2024-12-11"
+    },
+    {
+      "provider": "Mistral AI",
+      "name": "Codestral",
+      "category": "Moyen",
+      "pTotal": 22,
+      "pActive": 22,
+      "pue": 1.16,
+      "wue": 0.09,
+      "tps": 54.4,
+      "ttft": 0.23,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 200000,
+      "published": "2025-01-13"
+    },
+    {
+      "provider": "Mistral AI",
+      "name": "Magistral Medium",
+      "category": "Moyen",
+      "pTotal": 95,
+      "pActive": 95,
+      "pue": 1.16,
+      "wue": 0.09,
+      "tps": 48.6,
+      "ttft": 0.41,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 200000,
+      "published": "2025-06-10"
+    },
+    {
+      "provider": "Mistral AI",
+      "name": "Ministral 3b",
+      "category": "Petit",
+      "pTotal": 3,
+      "pActive": 3,
+      "pue": 1.16,
+      "wue": 0.09,
+      "tps": 65.2,
+      "ttft": 0.23,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 200000,
+      "published": "2024-10-09"
+    },
+    {
+      "provider": "Mistral AI",
+      "name": "Ministral 8b",
+      "category": "Petit",
+      "pTotal": 8,
+      "pActive": 8,
+      "pue": 1.16,
+      "wue": 0.09,
+      "tps": 87.8,
+      "ttft": 0.27,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 200000,
+      "published": "2024-10-09"
+    },
+    {
+      "provider": "Mistral AI",
+      "name": "Mistral Large",
+      "category": "Grand",
+      "pTotal": 122,
+      "pActive": 122,
+      "pue": 1.16,
+      "wue": 0.09,
+      "tps": 35.6,
+      "ttft": 0.45,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 200000,
+      "published": "2024-02-26"
+    },
+    {
+      "provider": "Mistral AI",
+      "name": "Mistral Medium",
+      "category": "Moyen",
+      "pTotal": 95,
+      "pActive": 95,
+      "pue": 1.16,
+      "wue": 0.09,
+      "tps": 45.1,
+      "ttft": 0.59,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 200000,
+      "published": "2025-08-12"
+    },
+    {
+      "provider": "Mistral AI",
+      "name": "Pixtral Large",
+      "category": "Grand",
+      "pTotal": 123,
+      "pActive": 123,
+      "pue": 1.16,
+      "wue": 0.09,
+      "tps": 35.6,
+      "ttft": 0.45,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 200000,
+      "published": "2024-11-18"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-4",
+      "category": "Grand",
+      "pTotal": 1760,
+      "pActive": 352,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 12.2,
+      "ttft": 0.74,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1900000,
+      "published": "2023-03-15"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-4 turbo",
+      "category": "Grand",
+      "pTotal": 880,
+      "pActive": 176,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 23.6,
+      "ttft": 1.02,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2024-11-06"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-4.1",
+      "category": "Moyen",
+      "pTotal": 352,
+      "pActive": 70,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 44.2,
+      "ttft": 0.73,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-05-14"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-4.1 nano",
+      "category": "Petit",
+      "pTotal": 23,
+      "pActive": 23,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 55.4,
+      "ttft": 0.55,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-04-14"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-4.1-mini",
+      "category": "Petit",
+      "pTotal": 76,
+      "pActive": 76,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 40.2,
+      "ttft": 0.62,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-04-15"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-4o",
+      "category": "Moyen",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 40.2,
+      "ttft": 0.54,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2024-11-20"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-4o mini",
+      "category": "Petit",
+      "pTotal": 18,
+      "pActive": 18,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 34.5,
+      "ttft": 0.51,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2024-07-18"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5",
+      "category": "Grand",
+      "pTotal": 300,
+      "pActive": 60,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 46.2,
+      "ttft": 13.64,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-08-07"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5 mini",
+      "category": "Petit",
+      "pTotal": 47,
+      "pActive": 47,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 64.1,
+      "ttft": 8.3,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-08-07"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5 nano",
+      "category": "Petit",
+      "pTotal": 11,
+      "pActive": 11,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 92.8,
+      "ttft": 6.94,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-08-07"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.1",
+      "category": "Grand",
+      "pTotal": 300,
+      "pActive": 60,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 42.6,
+      "ttft": 1.11,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-11-13"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.2",
+      "category": "Grand",
+      "pTotal": 420,
+      "pActive": 84,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 42.5,
+      "ttft": 3.47,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-12-09"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.2 pro",
+      "category": "Grand",
+      "pTotal": 5040,
+      "pActive": 1008,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 11.6,
+      "ttft": 32.5,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-12-09"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "o3 mini",
+      "category": "Petit",
+      "pTotal": 18,
+      "pActive": 18,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 224.4,
+      "ttft": 6.7,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-01-31"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "o4 mini",
+      "category": "Petit",
+      "pTotal": 18,
+      "pActive": 18,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 98.6,
+      "ttft": 6.38,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2025-04-16"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "text-embedding-3-large",
+      "category": "Embedding",
+      "pTotal": 8,
+      "pActive": null,
+      "pue": 0,
+      "wue": 0.569,
+      "tps": null,
+      "ttft": null,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 0,
+      "published": "2020-01-01"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.6 Sol",
+      "category": "Grand",
+      "pTotal": 900,
+      "pActive": 195,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 54,
+      "ttft": 3.893333333333333,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2026-07-09"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.6 Terra",
+      "category": "Moyen",
+      "pTotal": 47,
+      "pActive": 47,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 27.333333333333332,
+      "ttft": 3.0866666666666664,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2026-07-09"
+    },
+    {
+      "provider": "OpenAI",
+      "name": "GPT-5.6 Luna",
+      "category": "Petit",
+      "pTotal": 11,
+      "pActive": 11,
+      "pue": 1.2,
+      "wue": 0.569,
+      "tps": 39.666666666666664,
+      "ttft": 5.333333333333333,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 2000000,
+      "published": "2026-07-09"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Sonnet 5",
+      "category": "Grand",
+      "pTotal": 440,
+      "pActive": 88,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 57,
+      "ttft": 2.8875,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2026-06-30"
+    },
+    {
+      "provider": "Anthropic",
+      "name": "Claude Opus 4.8",
+      "category": "Grand",
+      "pTotal": 670,
+      "pActive": 133,
+      "pue": 1.115,
+      "wue": 0.56,
+      "tps": 58,
+      "ttft": 1.63,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 1400000,
+      "published": "2026-05-28"
+    },
+    {
+      "provider": "Google",
+      "name": "Gemini 3.5 flash",
+      "category": "Grand",
+      "pTotal": 900,
+      "pActive": 165,
+      "pue": 1.2,
+      "wue": 0.99,
+      "tps": 130.6,
+      "ttft": 2.72,
+      "flopsPerJoule": 2250000000000,
+      "computeKw": 9000000,
+      "published": "2026-05-19"
+    }
+  ],
+  "content": {
+    "stats": [
+      {
+        "value": "1 500 TWh",
+        "text": "demande mondiale d'électricité de l'IA possible d'ici 2035"
+      },
+      {
+        "value": "≈ 3 ×",
+        "text": "la consommation électrique annuelle de la France"
+      },
+      {
+        "value": "÷ 2",
+        "text": "avec une IA frugale généralisée"
+      }
+    ],
+    "statsSource": "Source : Schneider Electric, « Artificial Intelligence and Electricity, A System Dynamics Approach », 2024.",
+    "practices": [
+      {
+        "title": "Usages et modèles",
+        "color": "#0088ce",
+        "items": [
+          {
+            "icon": "circle-help",
+            "title": "Challenger le besoin",
+            "text": "Questionner le recours à l'IA générative pour le projet."
+          },
+          {
+            "icon": "crosshair",
+            "title": "Modèles spécialisés",
+            "text": "Privilégier les modèles spécialisés aux modèles généralistes."
+          },
+          {
+            "icon": "workflow",
+            "title": "Le bon modèle à chaque étape",
+            "text": "Pour un même processus métier, cibler le modèle adapté à chaque étape."
+          }
+        ]
+      },
+      {
+        "title": "Optimiser l'infrastructure",
+        "color": "#009aa6",
+        "items": [
+          {
+            "icon": "leaf",
+            "title": "Datacenters responsables",
+            "text": "Exiger un hébergement en France, ou à défaut en Europe, dans un datacenter alimenté en électricité bas carbone (location based). Suivre PUE et WUE."
+          }
+        ]
+      },
+      {
+        "title": "Optimiser l'inférence",
+        "color": "#a1006b",
+        "items": [
+          {
+            "icon": "message-square-text",
+            "title": "Prompts",
+            "text": "Former les utilisateurs ; privilégier une architecture qui reformule et optimise les prompts."
+          },
+          {
+            "icon": "scissors",
+            "title": "Tokens générés",
+            "text": "Limiter la verbosité du modèle et borner le nombre de tokens de réponse."
+          },
+          {
+            "icon": "route",
+            "title": "Routage automatique",
+            "text": "Router vers le modèle optimal selon l'usage, préférer des SLM aux LLM quand c'est possible."
+          },
+          {
+            "icon": "hard-drive",
+            "title": "Besoins de calcul",
+            "text": "Mettre en cache les réponses récurrentes ; choisir une architecture « Mixture of Experts »."
+          },
+          {
+            "icon": "laptop",
+            "title": "Exécution en local",
+            "text": "Évaluer l'exécution de certains cas d'usage via des SLM sur le poste utilisateur."
+          },
+          {
+            "icon": "layers",
+            "title": "Optimisation du RAG",
+            "text": "Limiter la taille et le nombre de chunks."
+          },
+          {
+            "icon": "history",
+            "title": "Compression d'historique",
+            "text": "Résumer régulièrement l'historique pour limiter les tokens d'entrée."
+          },
+          {
+            "icon": "activity",
+            "title": "Streaming de réponses",
+            "text": "Afficher progressivement la réponse pour limiter les tokens de sortie."
+          },
+          {
+            "icon": "eye",
+            "title": "Observabilité",
+            "text": "Mesurer la pertinence des entrées, la qualité des réponses et la justesse du routage (ex. LLM-as-a-Judge)."
+          },
+          {
+            "icon": "chart-line",
+            "title": "Piloter l'inférence",
+            "text": "Mesurer régulièrement l'impact pour suivre la progression et ajuster l'usage."
+          }
+        ]
+      },
+      {
+        "title": "Sensibiliser les utilisateurs",
+        "color": "#e05206",
+        "items": [
+          {
+            "icon": "pen-line",
+            "title": "Construction du prompt",
+            "text": "Former au prompt engineering, réutiliser les prompts et templates déjà éprouvés."
+          },
+          {
+            "icon": "image-off",
+            "title": "Génération d'images",
+            "text": "Quand le texte suffit, éviter de générer ou d'insérer images et vidéos."
+          },
+          {
+            "icon": "combine",
+            "title": "Factorisation",
+            "text": "Regrouper plusieurs demandes en une seule requête."
+          }
+        ]
+      }
+    ],
+    "references": [
+      {
+        "title": "Référentiel général d'écoconception de services numériques (RGESN)",
+        "year": "2024",
+        "url": "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/"
+      },
+      {
+        "title": "AFNOR Spec 2314 — Référentiel général pour l'IA frugale",
+        "year": "2024",
+        "url": "https://ecoresponsable.numerique.gouv.fr/publications/referentiel-general-ecoconception/",
+        "note": "Lien repris du classeur, qui pointe vers la page du RGESN."
+      },
+      {
+        "title": "Green LLM Techniques in Action — Université Cornell (arXiv)",
+        "year": "2026",
+        "url": "https://arxiv.org/abs/2601.02512"
+      },
+      {
+        "title": "Data-Centric Green AI — Université Cornell (arXiv)",
+        "year": "2022",
+        "url": "https://arxiv.org/abs/2204.02766"
+      },
+      {
+        "title": "Qu'est-ce que la Green AI ? — Gaël Lemaire, La Maison des énergies",
+        "year": "2026",
+        "url": "https://lamaisondesenergies.fr/green-ai-intelligence-ecologique/"
+      },
+      {
+        "title": "Guide RESIL IT NR — Digital League",
+        "year": "2026",
+        "url": "https://www.digital-league.org/blog/dl-media-blog-12/resilience-et-numerique-responsable-digital-league-rassemble-entreprises-et-institutions-pour-produire-un-guide-par-et-pour-les-tpe-et-pme-2910"
+      }
+    ]
+  }
+}

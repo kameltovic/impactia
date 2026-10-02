@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impact'IA — back-office des données</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="vendor/flag-icons/css/flag-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+<script src="vendor/lucide.min.js"></script>
+<style>
+.admin { flex: 1; display: grid; grid-template-columns: 240px 1fr; min-height: 0; }
+.admin nav { background: var(--card); border-right: 1px solid var(--line); padding: 16px 12px; overflow-y: auto; }
+.admin nav button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 12px; margin-bottom: 2px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: inherit; font-weight: 600; text-align: left; cursor: pointer; }
+.admin nav button:hover { color: var(--text); background: var(--bg); }
+.admin nav button[aria-current="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.admin nav .lucide { width: 17px; height: 17px; }
+.admin main { overflow-y: auto; padding: 20px 24px 40px; }
+@media (max-width: 900px) { body { display: block; } .admin { display: block; } .admin nav { display: flex; flex-wrap: wrap; gap: 4px; } .admin nav button { width: auto; } }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+.toolbar .status { margin-right: auto; font-size: 14px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; }
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.danger { color: var(--warn); }
+.btn.sm { padding: 4px 8px; font-size: 12px; }
+.btn .lucide { width: 15px; height: 15px; }
+.issues { margin: 0 0 16px; padding: 12px 16px; border-radius: 8px; font-size: 14px; border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); background: color-mix(in srgb, var(--warn) 7%, transparent); }
+.issues.ok { border-color: color-mix(in srgb, var(--good) 35%, transparent); background: color-mix(in srgb, var(--good) 7%, transparent); }
+.issues ul { margin: 6px 0 0; padding-left: 20px; }
+.edit { width: 100%; border-collapse: collapse; font-size: 13px; }
+.edit th { position: sticky; top: 0; background: var(--card); z-index: 1; white-space: nowrap; }
+.edit td { padding: 3px 4px; }
+.edit input, .edit select, .edit textarea { padding: 6px 8px; font-size: 13px; border-radius: 6px; min-width: 70px; }
+.edit input[type="checkbox"], .edit input[type="radio"] { width: auto; min-width: 0; }
+.edit .key { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.edit .help { font-size: 12px; color: var(--muted); max-width: 340px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.grid2 label { font-size: 13px; font-weight: 600; }
+.grid2 input, .grid2 select { margin-top: 4px; }
+.dim-card h2 .swatch { width: 14px; height: 14px; border-radius: 4px; background: var(--c); }
+textarea.json { width: 100%; min-height: 60vh; font: 12.5px/1.5 ui-monospace, monospace; padding: 12px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; }
+.intro { color: var(--muted); margin: -4px 0 16px; max-width: 80ch; }
+</style>
+</head>
+<body>
+<header>
+  <h1><i data-lucide="settings-2" aria-hidden="true" style="width:22px;height:22px;color:var(--sncf-vert);vertical-align:-3px"></i> Impact<span>'IA</span> · données</h1>
+  <p>Back-office : modifiez les données, vérifiez le résultat, puis exportez <code>data.json</code> pour le publier.</p>
+</header>
+<div class="admin">
+  <nav id="tabs" aria-label="Sections du back-office"></nav>
+  <main>
+    <div class="toolbar">
+      <span class="status" id="status"></span>
+      <label class="btn" for="import-file"><i data-lucide="upload" aria-hidden="true"></i>Importer<input type="file" id="import-file" accept="application/json,.json" hidden></label>
+      <button class="btn danger" id="reset" type="button"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Annuler les modifications</button>
+      <a class="btn" href="index.html?apercu" target="_blank" rel="noopener"><i data-lucide="eye" aria-hidden="true"></i>Aperçu dans le calculateur</a>
+      <button class="btn primary" id="export" type="button"><i data-lucide="download" aria-hidden="true"></i>Exporter data.json</button>
+    </div>
+    <div id="issues"></div>
+    <div id="panel"></div>
+  </main>
+</div>
+<script type="module" src="admin.js"></script>
+</body>
+</html>

@@ -1,169 +1,252 @@
-// Portage de l'onglet « Calcul » du classeur Impact'IA (SNCF / Resilio / Wavestone).
-// Les commentaires [N123] / [M123] renvoient aux cellules d'origine pour faciliter la relecture.
-// Unités : kWh, kg CO₂e, L eq — sur une année de projet.
-import { models, fe, mix } from "./data.js";
+// Moteur de calcul Impact'IA : portage de l'onglet « Calcul » du classeur SNCF / Resilio / Wavestone.
+//
+// Principe (détaillé dans docs/METHODOLOGIE.md) :
+//   1. chaque étape du cycle de vie calcule des ACTIVITÉS physiques, indépendantes des indicateurs :
+//      électricité consommée, part de la durée de vie des équipements utilisée, etc. ;
+//   2. chaque DIMENSION (électricité, GES, eau… définies dans data.json) convertit ces activités
+//      avec ses propres facteurs : impact = Σ activité × facteur.
+// Ajouter une dimension ou modifier un paramètre se fait donc dans data.json, sans toucher à ce fichier.
+// Les références [N123] / [M123] renvoient aux cellules de l'onglet « Calcul » du classeur.
 
 const YEAR_S = 365 * 24 * 3600;
-const f = (k) => {
-  if (!(k in fe)) throw new Error(`Facteur introuvable : ${k}`);
-  return fe[k];
+const GPU_COUNTS = [1, 2, 4, 8, 16, 32, 64, 128, 256]; // [N167] nombre de GPU arrondi à la puissance de 2 supérieure
+
+/** Clés des activités (et donc des facteurs qu'une dimension peut définir). */
+export const ACTIVITIES = {
+  gridInference: "Électricité consommée à l'inférence (kWh, au mix du pays d'inférence)",
+  gridTraining: "Électricité consommée à l'entraînement (kWh, au mix mondial)",
+  building: "Électricité des équipements informatiques soumise au facteur bâtiment (kWh)",
+  onsite: "Électricité × WUE du centre de données (L d'eau prélevée sur site)",
+  server: "Fraction de la durée de vie d'un serveur utilisée",
+  gpu: "Fraction de la durée de vie d'un GPU utilisée",
+  firewall: "Fraction de la durée de vie d'un pare-feu utilisée (pondérée par son ratio d'usage)",
+  router: "Fraction de la durée de vie d'un routeur utilisée (pondérée par son ratio d'usage)",
+  switch: "Fraction de la durée de vie d'un switch utilisée (pondérée par son ratio d'usage)",
+  node: "Fraction de la durée de vie d'un nœud du front applicatif utilisée",
+  hdd: "Fraction de la durée de vie d'un disque dur utilisée",
 };
+const NETWORK = ["firewall", "router", "switch"];
 
-export const findModel = (name) => models.find((m) => m.name === name);
+export const usableModels = (data) => data.models.filter((m) => m.category !== "Embedding");
+export const findModel = (data, name) => data.models.find((m) => m.name === name);
 
-// Paramètres communs à tous les modèles (colonne M)
-function project(input) {
+/** Lit un paramètre de data.json ; une clé absente est une erreur de données, pas un zéro silencieux. */
+function params(data) {
+  return new Proxy(data.parameters, {
+    get(target, key) {
+      if (!(key in target)) throw new Error(`Paramètre manquant dans data.json : ${String(key)}`);
+      return target[key].value;
+    },
+  });
+}
+
+/** Volumes annuels du projet (colonne M de l'onglet Calcul). */
+export function project(data, input) {
+  const P = params(data);
   const prod = input.phase === "production";
-  const size = input.requestTokens; // tokens de sortie par requête (phase Conception)
   const requestsYear = prod ? input.requestsPerMonth * 12 : input.users * input.requestsPerDay * 365;
-  let ef; // [M210] facteur d'émission de l'électricité à l'inférence
-  if (input.mixMode === "custom") ef = input.customEf;
-  else if (input.mixMode === "country") ef = mix[input.country];
-  else ef = f("Facteur d'émission de l'électricité consommée France");
+  const conceptionOut = input.users * input.requestsPerDay * input.requestTokens * 365;
   return {
     requestsYear,
-    // ponytail: en Conception le classeur réutilise le champ caché « requêtes / mois » ; on le dérive des usages.
+    // Le classeur lit en Conception le champ masqué « requêtes / mois » de la phase Production ; on le dérive des usages.
     requestsMonth: requestsYear / 12,
-    inTokens: prod ? input.inputTokensPerMonth * 12 : input.users * input.requestsPerDay * size * 5 * 365, // [M27]
-    outTokens: prod ? input.outputTokensPerMonth * 12 : input.users * input.requestsPerDay * size * 365, // [M28]
+    inTokens: prod ? input.inputTokensPerMonth * 12 : conceptionOut * P.conceptionInputOutputRatio, // [M27]
+    outTokens: prod ? input.outputTokensPerMonth * 12 : conceptionOut, // [M28]
     embTokens: prod ? input.embeddingTokensPerMonth * 12 : 0, // [M127]
-    ef,
   };
 }
 
-export function compute(modelName, input) {
-  const m = findModel(modelName);
+/** Facteur par kWh d'une dimension à l'inférence : valeur fixe, ou mix électrique choisi par l'utilisateur. */
+export function gridInferenceFactor(data, dim, input) {
+  const f = dim.factors.gridInference;
+  if (f !== "mix") return f;
+  if (input.mixMode === "custom") return input.customIntensity;
+  const mix = input.mixMode === "country" ? data.mixes.find((m) => m.name === input.country) : data.mixes.find((m) => m.default);
+  if (!mix) throw new Error(`Mix électrique introuvable : ${input.country ?? "mix par défaut"}`);
+  return mix.values[dim.key] ?? 0;
+}
+
+/** Impact d'une étape pour une dimension : Σ activité × facteur. */
+function impact(step, dim, gridInference) {
+  let sum = 0;
+  for (const key of Object.keys(ACTIVITIES)) {
+    const a = step.activities[key];
+    if (!a) continue;
+    let factor = key === "gridInference" ? gridInference : dim.factors[key] ?? 0;
+    // Le classeur multiplie l'embarqué réseau du traitement des requêtes par N_GPU / 8 pour l'eau [N243] mais pas pour le GES [N228].
+    if (step.networkGpuScale && NETWORK.includes(key) && !dim.scaleRequestNetworkByGpus) factor /= step.networkGpuScale;
+    sum += a * factor;
+  }
+  return sum;
+}
+
+const scaleActivities = (acts, k) => Object.fromEntries(Object.entries(acts).map(([key, v]) => [key, v * k]));
+
+export function compute(data, modelName, input) {
+  const m = findModel(data, modelName);
   if (!m) throw new Error(`Modèle inconnu : ${modelName}`);
-  const p = project(input);
+  const P = params(data);
+  const p = project(data, input);
   const today = input.today ?? new Date();
   const T = p.outTokens;
-
-  const gpuPerServer = f("Nombre de GPU par serveur"); // [M133]
-  const batch = f("Batch"); // [M179]
-  const cfAware = f("CF_Aware"); // [M238]
-  const efWorld = f("Facteur d'émission de l'électricité consommée Monde"); // [M84]
-  const efBat = f("Facteur d'émission du batiment et de l'environnement technique"); // [M217]
-  const serverLife = f("Durée de vie du serveur") * YEAR_S; // [M223]
-  const gpuLife = f("Durée de vie d'un GPU") * YEAR_S; // [M224]
-  const netLife = f("Durée de vie équipements réseau") * YEAR_S; // [M229]
-  const serverEmb = f("GES embarqué du serveur"); // [M225]
-  const gpuEmb = f("GES embarqué d'un seul GPU"); // [M226]
-  const serverPower = f("Puissance électrique d'un serveur - hors GPU"); // [M195]
-  const serverGpuWu = f("WU du serveur (embarqué)") + 8 * f("WU d'un seul GPU (embarqué)"); // [M241]
-  const rFw = f("Ratio d'usage pares-feux"), rRt = f("Ratio d'usage routeurs"), rSw = f("Ratio d'usage switches");
-  const netPower = f("Puissance électrique des pares-feux") * rFw + f("Puissance électrique des routeurs") * rRt + f("Puissance électrique des switches") * rSw; // [N200]
-  const netEmb = f("GES embarqué du pare-feu") * rFw + f("GES embarqué du routeur") * rRt + f("GES embarqué du switch") * rSw;
-  const netWu = f("WU du pare-feu (FR)") * rFw + f("WU du routeur (FR)") * rRt + f("WU du switch (FR)") * rSw;
   const { pue, wue } = m;
+  const batch = P.batchSize;
+  const perServer = P.gpuPerServer;
+  const serverLife = P.serverLifeYears * YEAR_S;
+  const gpuLife = P.gpuLifeYears * YEAR_S;
+  const netLife = P.networkLifeYears * YEAR_S;
+  const usage = { firewall: P.firewallUsage, router: P.routerUsage, switch: P.switchUsage };
+  const netPower = P.firewallPowerKw * P.firewallUsage + P.routerPowerKw * P.routerUsage + P.switchPowerKw * P.switchUsage; // [N200]
+  const network = (fraction) => Object.fromEntries(NETWORK.map((k) => [k, usage[k] * fraction]));
 
   // ── Inférence : traitement des requêtes par le modèle (Ecologits + enrichissements) ──
-  const minGpus = Math.ceil(((1.2 * m.pTotal * (f("Quantification") / 8)) / f("Mémoire GPU")) * 10) / 10; // [N168-169]
-  const gpus = [1, 2, 4, 8, 16, 32, 64, 128, 256].find((n) => minGpus <= n); // [N167]
-  if (!gpus) throw new Error(`${m.name} : plus de 256 GPU requis`);
-  const gpuWhPerToken = T > 0 ? f("GPU_Energy_α") * Math.exp(f("GPU_Energy_β") * batch) * m.pActive + f("GPU_Energy_γ") : 0; // [N175]
+  const minGpus = Math.ceil(((P.modelMemoryOverhead * m.pTotal * (P.quantizationBits / 8)) / P.gpuMemoryGb) * 10) / 10; // [N168-169]
+  const gpus = GPU_COUNTS.find((n) => minGpus <= n);
+  if (!gpus) throw new Error(`${m.name} : plus de ${GPU_COUNTS.at(-1)} GPU requis`);
+  const gpuWhPerToken = T > 0 ? P.gpuEnergyAlpha * Math.exp(P.gpuEnergyBeta * batch) * m.pActive + P.gpuEnergyGamma : 0; // [N175]
   const gpuKwh = ((T * gpuWhPerToken) / 1000) * gpus; // [N173]
-  const latencyPerToken = m.tps ? 1 / m.tps : f("Latence_α") * m.pActive + f("Latence_β") * batch + f("Latence_γ"); // [N183]
-  const prefill = (m.coefficient * p.inTokens + 17.88 * p.requestsMonth) / 1000; // [N191]
+  const latencyPerToken = m.tps ? 1 / m.tps : P.latencyAlpha * m.pActive + P.latencyBeta * batch + P.latencyGamma; // [N183]
+  const prefillCoef = P.prefillCoefRef * ((m.ttft ?? 0) / P.prefillTtftRef); // Modèles_IA colonne « Coefficient »
+  const prefill = (prefillCoef * p.inTokens + P.prefillPerRequestMs * p.requestsMonth) / 1000; // [N191]
   const latency = T * latencyPerToken + prefill; // [N181] = max(decode, decode + prefill)
-  const serverKwh = T > 0 ? (latency / 3600) * serverPower * (gpus / gpuPerServer) / batch : 0; // [N193]
-  const networkKwh = (gpus * netPower * (latency / 3600 / gpuPerServer)) / batch; // [N197]
+  const serverKwh = T > 0 ? ((latency / 3600) * P.serverPowerKw * (gpus / perServer)) / batch : 0; // [N193]
+  const networkKwh = (gpus * netPower * (latency / 3600 / perServer)) / batch; // [N197]
   const itKwh = gpuKwh + serverKwh + networkKwh;
   const requestKwh = itKwh * pue; // [N163]
-  const requestEmbodied =
-    (gpus / gpuPerServer) * serverEmb * (latency / (batch * serverLife)) + // [N221]
-    gpus * gpuEmb * (latency / (batch * gpuLife)) + // [N222]
-    netEmb * (latency / (batch * netLife)) + // [N228]
-    itKwh * efBat; // [N216]
-  const requestGwp = requestKwh * p.ef + requestEmbodied; // [N205]
-  const requestWater =
-    (gpus / gpuPerServer) * serverGpuWu * (latency / (batch * serverLife)) + // [N240]
-    netWu * (latency / (batch * netLife)) * (gpus / gpuPerServer) + // [N243]
-    wue * itKwh * cfAware; // [N236]
+  const request = {
+    phase: "Inférence",
+    label: "Traitement des requêtes par le modèle",
+    icon: "cpu",
+    networkGpuScale: gpus / perServer,
+    activities: {
+      gridInference: requestKwh, // [N208]
+      building: itKwh, // [N216]
+      onsite: itKwh * wue, // [N236]
+      server: (gpus / perServer) * (latency / (batch * serverLife)), // [N221] [N240]
+      gpu: gpus * (latency / (batch * gpuLife)), // [N222] [N240]
+      ...network((latency / (batch * netLife)) * (gpus / perServer)), // [N228] [N243]
+    },
+  };
 
   // ── Inférence : RAG / embedding (Production uniquement) ──
-  const embModel = findModel("text-embedding-3-large");
-  const embGpus = f("Nombre de GPU utilisé pour l'embedding"); // [M130]
-  const embLatency = p.embTokens > 0 ? (0.022 * ((embModel.pTotal * 1e9) / 8e9) * (p.embTokens * batch) + 97.394) / 1000 : 0; // [M126]
-  const embServerKwh = (embLatency / 3600) * (f("Puissance électrique d'un GPU pour l'embedding") + serverPower / gpuPerServer) * embGpus; // [M132]
-  const embNetKwh = netPower * (embLatency / 3600 / gpuPerServer) * embGpus; // [M134]
-  const embKwh = ((embServerKwh + embNetKwh) * pue) / batch; // [N129] (le nombre de GPU est déjà dans M132/M134)
-  const embGwp =
-    embKwh * p.ef + // [N137]
-    (embGpus / gpuPerServer) * serverEmb * (embLatency / (batch * serverLife)) +
-    embGpus * gpuEmb * (embLatency / (batch * gpuLife)) +
-    (embGpus / gpuPerServer) * netEmb * (embLatency / (batch * netLife)) +
-    embKwh * efBat; // [M138]
-  const embWater =
-    embKwh * wue * cfAware + // [N141]
-    (embGpus / gpuPerServer) * serverGpuWu * (embLatency / (batch * serverLife)) +
-    (embGpus / gpuPerServer) * netWu * (embLatency / (batch * netLife)); // [M142]
+  const embModel = findModel(data, P.embeddingModel);
+  if (!embModel) throw new Error(`Modèle d'embedding introuvable : ${P.embeddingModel}`);
+  const embGpus = P.embeddingGpus;
+  const embLatency = p.embTokens > 0
+    ? (P.embeddingLatencyCoefMs * ((embModel.pTotal * 1e9) / (P.embeddingLatencyRefParamsB * 1e9)) * (p.embTokens * batch) + P.embeddingLatencyBaseMs) / 1000
+    : 0; // [M126]
+  const embServerKwh = (embLatency / 3600) * (P.embeddingGpuPowerKw + P.serverPowerKw / perServer) * embGpus; // [M132]
+  const embNetKwh = netPower * (embLatency / 3600 / perServer) * embGpus; // [M134]
+  const embKwh = ((embServerKwh + embNetKwh) * pue) / batch; // [N129]
+  const rag = {
+    phase: "Inférence",
+    label: "RAG / Embedding",
+    icon: "layers",
+    activities: {
+      gridInference: embKwh, // [N137]
+      building: embKwh, // [M138]
+      onsite: embKwh * wue, // [N141]
+      server: (embGpus / perServer) * (embLatency / (batch * serverLife)), // [M138] [M142]
+      gpu: embGpus * (embLatency / (batch * gpuLife)), // [M138] [M142]
+      ...network((embGpus / perServer) * (embLatency / (batch * netLife))), // [M138] [M142]
+    },
+  };
 
-  // ── Inférence : front applicatif (pré & post traitements) ──
-  const nodes = f("Nombre de nœuds");
-  const nodeShare = T / f("Nombre de tokens de sortie annuels des requêtes traitées par un nœud pour le front");
-  const nodeLife = f("Durée de vie d'un nœud 16Go") * YEAR_S;
-  const frontKwh = (nodes * f("Puissance électrique d'un nœud") + (nodes / 16) * netPower) * 1.2 * 24 * 365 * nodeShare; // [N146]
-  const frontGwp =
-    nodeShare * ((nodes * f("GES embarqué d'un nœud 16Go") * YEAR_S) / nodeLife + (netEmb * nodes) / 16 * (YEAR_S / netLife)) +
-    frontKwh * (p.ef + efBat); // [N151]
-  const frontWater =
-    frontKwh * 0.2 * cfAware + // [N156]
-    nodeShare * ((YEAR_S / nodeLife) * nodes * f("WU d'un noeud 16Go") + (nodes / 16) * netWu * (YEAR_S / netLife)); // [N158]
+  // ── Inférence : front applicatif (pré et post traitements) ──
+  const nodes = P.frontNodes;
+  const nodeShare = T / P.frontTokensPerNode;
+  const frontKwh = (nodes * P.frontNodePowerKw + (nodes / P.frontNodesPerNetworkKit) * netPower) * P.frontPue * 24 * 365 * nodeShare; // [N146]
+  const front = {
+    phase: "Inférence",
+    label: "Front applicatif — pré et post traitements",
+    icon: "monitor",
+    activities: {
+      gridInference: frontKwh, // [N151]
+      building: frontKwh, // [N151]
+      onsite: frontKwh * P.frontWue, // [N156]
+      node: nodeShare * nodes * (YEAR_S / (P.frontNodeLifeYears * YEAR_S)), // [N151] [N158]
+      ...network(nodeShare * (nodes / P.frontNodesPerNetworkKit) * (YEAR_S / netLife)), // [N151] [N158]
+    },
+  };
 
   // ── Entraînement, amorti sur les tokens générés pendant la vie du modèle ──
   const cutoff = new Date(today);
-  cutoff.setMonth(cutoff.getMonth() - 24);
+  cutoff.setMonth(cutoff.getMonth() - P.activeModelsWindowMonths);
   const iso = cutoff.toISOString().slice(0, 10);
-  const activeModels = models.filter((x) => x.provider === m.provider && x.published >= iso).length; // [N119]
-  // ponytail: le classeur compte les modèles du fournisseur sélectionné pour toutes les colonnes ; ici chaque modèle compte les siens.
-  // Garde-fou : aucun modèle récent → 1 (le classeur renvoie #DIV/0!).
-  const flops = (m.computeKw * f("Ratio d'inférence sur la compute capacity") / Math.max(activeModels, 1)) * m.flopsPerJoule * 0.85 * 0.85; // [N115-116]
-  const lifetimeTokens = flops * (YEAR_S / (2 * m.pActive * 1e9)) * 1.5; // [N114] (âge du modèle : 1,5 an)
-  const share = lifetimeTokens > 0 ? T / lifetimeTokens : 0;
-  const days = (new Date(m.published) - new Date("2020-01-01")) / 86400000; // [N94]
-  const trainFlops = 10 ** (0.0006 * days + 17.151) * (m.pTotal * 1e9) ** 0.541; // [N92]
-  const trainTotalKwh = gpuKwh > 0 ? (itKwh / gpuKwh) * ((trainFlops / m.flopsPerJoule / 3600) / 1000) * pue : 0; // [N91]
+  // [N119] Le classeur compte les modèles du fournisseur sélectionné, y compris pour les modèles comparés ; ici chacun compte les siens.
+  // Aucun modèle récent : on compte 1 (le classeur renvoie #DIV/0!).
+  const activeModels = Math.max(1, data.models.filter((x) => x.provider === m.provider && x.published >= iso).length);
+  const flops = ((m.computeKw * P.inferenceComputeShare) / activeModels) * m.flopsPerJoule * P.computeEfficiency; // [N115-116]
+  const lifetimeTokens = flops * (YEAR_S / (2 * m.pActive * 1e9)) * P.modelLifetimeYears; // [N114]
+  const share = lifetimeTokens > 0 ? T / lifetimeTokens : 0; // part des tokens du modèle produits par le projet
+  const days = (new Date(m.published) - new Date(P.trainingFlopsRefDate)) / 86400000; // [N94]
+  const trainFlops = 10 ** (P.trainingFlopsDailyGrowth * days + P.trainingFlopsIntercept) * (m.pTotal * 1e9) ** P.trainingFlopsExponent; // [N92]
+  const trainTotalKwh = gpuKwh > 0 ? (itKwh / gpuKwh) * (trainFlops / m.flopsPerJoule / 3600 / 1000) * pue : 0; // [N91]
   const finalKwh = trainTotalKwh * share; // [N90]
-  const finalGwp = finalKwh * efWorld + (requestKwh > 0 ? (requestEmbodied / requestKwh) * finalKwh : 0); // [N96-97]
-  const finalWater = finalKwh * wue * cfAware + (requestKwh > 0 ? (requestWater / requestKwh) * finalKwh : 0); // [N99-100]
+  // L'embarqué de l'entraînement suit le même ratio « hors électricité du réseau / kWh » que l'inférence [N97] [N100].
+  const { gridInference: _, ...requestNonGrid } = request.activities;
+  const final = {
+    phase: "Entraînement",
+    label: "Entraînement final du modèle",
+    icon: "graduation-cap",
+    networkGpuScale: request.networkGpuScale,
+    activities: {
+      ...scaleActivities(requestNonGrid, requestKwh > 0 ? finalKwh / requestKwh : 0),
+      gridTraining: finalKwh, // [N96]
+    },
+  };
+  final.activities.onsite += finalKwh * wue; // [N99]
 
-  const trainTokens = trainFlops / (6 * m.pTotal * 1e9); // [N65]
-  const hdds = Math.ceil(Math.ceil((trainTokens * 128) / 8 / 1024 ** 4) / 30); // [N66-67]
-  const trainHours = f("Durée d'entrainement") * 24; // [M70]
-  const hddLife = f("Durée de vie du HDD") * 365 * 24; // [M73]
-  const storageKwh = f("Puissance électrique du HDD pour le stockage dataset de l'entrainement") * hdds * pue * f("Ratio d'usage HDD") * trainHours * share; // [N64]
-  const storageGwp = (f("GES embarqué du stockage HDD de l'entrainement") / hddLife) * hdds * trainHours * share + storageKwh * efWorld; // [N72]
-  const storageWater = storageKwh * wue * cfAware + (f("WU du stockage HDD de l'entrainement (WORLD)") / hddLife) * hdds * trainHours * share; // [N76]
+  const trainTokens = trainFlops / (P.flopsPerTokenParam * m.pTotal * 1e9); // [N65]
+  const hdds = Math.ceil(Math.ceil((trainTokens * P.bytesPerTrainingToken) / 1024 ** 4) / P.hddCapacityTb); // [N66-67]
+  const trainHours = P.trainingDays * 24; // [M70]
+  const storageKwh = P.hddPowerKw * hdds * pue * P.hddUsageRatio * trainHours * share; // [N64]
+  const storage = {
+    phase: "Entraînement",
+    label: "Stockage de la donnée d'entraînement",
+    icon: "database",
+    activities: {
+      gridTraining: storageKwh, // [N72]
+      onsite: storageKwh * wue, // [N76]
+      hdd: (hdds * trainHours * share) / (P.hddLifeYears * 365 * 24), // [N72] [N76]
+    },
+  };
 
-  const steps = [
-    { phase: "Entraînement", label: "Stockage de la donnée d'entraînement", kwh: storageKwh, gwp: storageGwp, water: storageWater },
-    { phase: "Entraînement", label: "Expérimentations tests (R&D)", kwh: 4 * finalKwh, gwp: 4 * finalGwp, water: 4 * finalWater },
-    { phase: "Entraînement", label: "Entraînement final du modèle", kwh: finalKwh, gwp: finalGwp, water: finalWater },
-    { phase: "Inférence", label: "RAG / Embedding", kwh: embKwh, gwp: embGwp, water: embWater },
-    { phase: "Inférence", label: "Front applicatif — pré & post traitements", kwh: frontKwh, gwp: frontGwp, water: frontWater },
-    { phase: "Inférence", label: "Traitement des requêtes par le modèle", kwh: requestKwh, gwp: requestGwp, water: requestWater },
-  ];
-  const sum = (k, ph) => steps.filter((s) => !ph || s.phase === ph).reduce((a, s) => a + s[k], 0);
-  const total = { kwh: sum("kwh"), gwp: sum("gwp"), water: sum("water") };
+  const rd = {
+    phase: "Entraînement",
+    label: "Expérimentations tests (R&D)",
+    icon: "flask-conical",
+    networkGpuScale: final.networkGpuScale,
+    activities: scaleActivities(final.activities, P.rdMultiplier), // [N81] [N83] [N86]
+  };
+
+  // ── Conversion des activités en impacts pour chaque dimension ──
+  const steps = [storage, rd, final, rag, front, request];
+  const grid = Object.fromEntries(data.dimensions.map((d) => [d.key, gridInferenceFactor(data, d, input)]));
+  for (const s of steps) s.impacts = Object.fromEntries(data.dimensions.map((d) => [d.key, impact(s, d, grid[d.key])]));
+  const sum = (phase) =>
+    Object.fromEntries(data.dimensions.map((d) => [d.key, steps.filter((s) => !phase || s.phase === phase).reduce((a, s) => a + s.impacts[d.key], 0)]));
+  const total = sum();
+  const per = (n) => (n > 0 ? Object.fromEntries(Object.entries(total).map(([k, v]) => [k, v / n])) : null);
 
   return {
     model: m,
     project: p,
     gpus,
+    grid,
     steps,
     total,
-    training: { kwh: sum("kwh", "Entraînement"), gwp: sum("gwp", "Entraînement"), water: sum("water", "Entraînement") },
-    inference: { kwh: sum("kwh", "Inférence"), gwp: sum("gwp", "Inférence"), water: sum("water", "Inférence") },
-    perRequest: p.requestsYear > 0 ? { kwh: total.kwh / p.requestsYear, gwp: total.gwp / p.requestsYear, water: total.water / p.requestsYear } : null,
-    perToken: T > 0 ? { kwh: total.kwh / T, gwp: total.gwp / T, water: total.water / T } : null,
+    training: sum("Entraînement"),
+    inference: sum("Inférence"),
+    perRequest: per(p.requestsYear),
+    perToken: per(T),
     // [C36-C39] répartition de l'électricité du traitement des requêtes par équipement
     equipment: [
-      { label: "GPU", kwh: gpuKwh },
-      { label: "Serveur (hors GPU)", kwh: serverKwh },
-      { label: "Équipements réseau du centre de données", kwh: networkKwh },
-      { label: "Infrastructures techniques (PUE)", kwh: requestKwh - itKwh },
+      { label: "GPU", icon: "microchip", kwh: gpuKwh },
+      { label: "Serveur (hors GPU)", icon: "server", kwh: serverKwh },
+      { label: "Équipements réseau du centre de données", icon: "network", kwh: networkKwh },
+      { label: "Infrastructures techniques (PUE)", icon: "building-2", kwh: requestKwh - itKwh },
     ],
-    // test hooks : valeurs intermédiaires comparées aux cellules du classeur
-    _cells: { gpuKwh, latency, prefill, networkKwh, requestEmbodied, requestWater, embKwh, embGwp, embWater, frontKwh, frontGwp, frontWater },
+    _cells: { gpuKwh, latency, prefill, networkKwh, embKwh, frontKwh, requestKwh, finalKwh, storageKwh },
   };
 }

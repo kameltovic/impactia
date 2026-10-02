@@ -1,2 +1,2 @@
 FROM nginx:alpine
-COPY index.html app.js calc.js data.js /usr/share/nginx/html/
+COPY . /usr/share/nginx/html/
