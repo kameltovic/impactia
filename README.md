@@ -1,6 +1,8 @@
 # Impact'IA — version web
 
-Version web de la calculatrice [Impact'IA](https://github.com/SNCFdevelopers/ImpactIA), conçue par la Direction RSE et la Direction du Numérique Responsable du groupe SNCF avec Resilio et Wavestone. Elle estime l'empreinte environnementale annuelle d'un projet mobilisant un modèle d'IA générative : électricité, gaz à effet de serre et eau, et toute autre dimension que l'on y ajoute.
+Version web de la calculatrice [Impact'IA](https://github.com/SNCFdevelopers/ImpactIA). Elle estime l'empreinte environnementale annuelle d'un projet mobilisant un modèle d'IA générative : électricité, gaz à effet de serre et eau, et toute autre dimension que l'on y ajoute.
+
+> **Ce projet est entièrement basé sur le travail d'Impact'IA**, conçu par la Direction RSE et la Direction du Numérique Responsable du groupe SNCF avec [Resilio](https://resilio.tech) et [Wavestone](https://www.wavestone.com) : méthodologie, formules, facteurs d'impact, données de modèles, bonnes pratiques et références viennent de leur [calculatrice Excel et de leur guide méthodologique](https://github.com/SNCFdevelopers/ImpactIA). Cette version n'en est qu'une transposition en application web ; elle est indépendante et non officielle. Tout le mérite du fond revient aux auteurs d'origine.
 
 Démonstration : https://impactia.dev.beancraft.dev · Back-office : https://impactia.dev.beancraft.dev/admin.html
 
