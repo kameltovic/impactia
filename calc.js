@@ -115,6 +115,7 @@ export function compute(data, modelName, input) {
   const requestKwh = itKwh * pue; // [N163]
   const request = {
     phase: "Inférence",
+    key: "request",
     label: "Traitement des requêtes par le modèle",
     icon: "cpu",
     networkGpuScale: gpus / perServer,
@@ -140,6 +141,7 @@ export function compute(data, modelName, input) {
   const embKwh = ((embServerKwh + embNetKwh) * pue) / batch; // [N129]
   const rag = {
     phase: "Inférence",
+    key: "rag",
     label: "RAG / Embedding",
     icon: "layers",
     activities: {
@@ -158,6 +160,7 @@ export function compute(data, modelName, input) {
   const frontKwh = (nodes * P.frontNodePowerKw + (nodes / P.frontNodesPerNetworkKit) * netPower) * P.frontPue * 24 * 365 * nodeShare; // [N146]
   const front = {
     phase: "Inférence",
+    key: "front",
     label: "Front applicatif — pré et post traitements",
     icon: "monitor",
     activities: {
@@ -187,6 +190,7 @@ export function compute(data, modelName, input) {
   const { gridInference: _, ...requestNonGrid } = request.activities;
   const final = {
     phase: "Entraînement",
+    key: "final",
     label: "Entraînement final du modèle",
     icon: "graduation-cap",
     networkGpuScale: request.networkGpuScale,
@@ -203,6 +207,7 @@ export function compute(data, modelName, input) {
   const storageKwh = P.hddPowerKw * hdds * pue * P.hddUsageRatio * trainHours * share; // [N64]
   const storage = {
     phase: "Entraînement",
+    key: "storage",
     label: "Stockage de la donnée d'entraînement",
     icon: "database",
     activities: {
@@ -214,6 +219,7 @@ export function compute(data, modelName, input) {
 
   const rd = {
     phase: "Entraînement",
+    key: "rd",
     label: "Expérimentations tests (R&D)",
     icon: "flask-conical",
     networkGpuScale: final.networkGpuScale,
@@ -247,6 +253,6 @@ export function compute(data, modelName, input) {
       { label: "Équipements réseau du centre de données", icon: "network", kwh: networkKwh },
       { label: "Infrastructures techniques (PUE)", icon: "building-2", kwh: requestKwh - itKwh },
     ],
-    _cells: { gpuKwh, latency, prefill, networkKwh, embKwh, frontKwh, requestKwh, finalKwh, storageKwh },
+    _cells: { gpuKwh, latency, latencyPerToken, prefill, networkKwh, embKwh, frontKwh, requestKwh, finalKwh, storageKwh },
   };
 }

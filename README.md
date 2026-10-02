@@ -12,6 +12,7 @@ Démonstration : https://impactia.dev.beancraft.dev · Back-office : https://imp
 - **Paramètres séparés du code.** Modèles, hypothèses, facteurs, mix électriques et contenus sont dans `data.json` ; chaque paramètre indique son unité, sa variable Excel et sa cellule d'origine.
 - **Indépendant des fournisseurs.** N'importe quel fournisseur ou modèle peut être ajouté ; le code ne contient aucun nom de modèle.
 - **Dimensions extensibles.** Un nouvel indicateur se déclare par ses facteurs dans `data.json` (ou le back-office), sans toucher au code.
+- **Comparaison avec EcoLogits.** Les mêmes volumes estimés en direct par l'[API EcoLogits](https://github.com/mlco2/ecologits-api), avec le ratio entre les deux méthodes.
 - **Back-office statique.** Édition, validation en direct et aperçu dans le navigateur, puis export de `data.json` à commiter. Aucun serveur ni base de données.
 - **Simple à maintenir.** HTML, CSS et JavaScript sans framework ni compilation ; bibliothèques copiées dans `vendor/` ; tests avec le lanceur intégré de Node.
 

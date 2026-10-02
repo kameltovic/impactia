@@ -2,6 +2,7 @@
 // Interface du calculateur. Tout ce qui est métier (modèles, paramètres, dimensions, mix, contenus) vient de data.json :
 // ce fichier ne contient ni valeur de calcul ni nom de modèle.
 import { compute, usableModels } from "./calc.js";
+import { ecologitsRequest, fetchEcologits } from "./ecologits.js";
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -206,7 +207,71 @@ function render() {
   </section>`;
   icons();
   animate();
+  renderEcologits(r, input);
 }
+
+// ── Comparaison avec EcoLogits (API publique, appelée seulement après un clic) ──
+const ECO_EXTRA = { adpe: "Ressources abiotiques (ADPe)", pe: "Énergie primaire" };
+let ecoEnabled = false;
+let ecoSeq = 0;
+let ecoTimer;
+let ecoLast = null;
+function ecoCard(body) {
+  return `<section class="card span-12 eco">
+    ${h2("scale-3d", "Comparer avec EcoLogits")}
+    <p class="hint" style="margin-top:0">Mêmes volumes, estimés par <a href="https://ecologits.ai" target="_blank" rel="noopener">EcoLogits</a> (GenAI Impact), via son API publique. Les périmètres diffèrent : Impact'IA ajoute notamment le RAG, le front applicatif, le traitement des tokens d'entrée, le bâtiment et les équipements réseau, et pondère l'eau par sa rareté locale (AWARE). Un ratio supérieur à 1 est donc attendu.</p>
+    ${body}
+  </section>`;
+}
+function renderEcologits(r, input) {
+  const el = $("#ecologits");
+  if (!data.meta.ecologitsApi) return void (el.innerHTML = "");
+  ecoLast = { r, input };
+  clearTimeout(ecoTimer);
+  const seq = ++ecoSeq; // toute réponse plus ancienne encore en vol sera ignorée
+  if (!ecoEnabled) {
+    el.innerHTML = ecoCard(`<button type="button" class="btn-eco" id="eco-run">${ic("scale-3d")}Lancer la comparaison</button>
+      <p class="hint">Données envoyées à api.ecologits.ai : fournisseur, modèle, tokens de sortie et latence d'une requête moyenne, zone électrique. Aucune donnée personnelle.</p>`);
+    return icons();
+  }
+  const req = ecologitsRequest(data, r, input);
+  if (req.unavailable) {
+    el.innerHTML = ecoCard(`<p class="alert">${ic("info")}<span>${esc(req.unavailable)}</span></p>`);
+    return icons();
+  }
+  el.querySelector(".eco")?.classList.add("loading");
+  if (!el.querySelector(".eco table")) el.innerHTML = ecoCard(`<p class="hint">${ic("loader")} Interrogation d'EcoLogits…</p>`);
+  icons();
+  ecoTimer = setTimeout(async () => {
+    let html;
+    try {
+      const eco = await fetchEcologits(data, req);
+      const rows = dims.filter((d) => d.ecologits && eco.impacts[d.ecologits]);
+      const request = r.steps.find((s) => s.key === "request");
+      const extra = Object.entries(eco.impacts).filter(([k]) => !dims.some((d) => d.ecologits === k) && ECO_EXTRA[k]);
+      const range = (d, x) => `${fmt(d, x.min)} – ${fmt(d, x.max)}`;
+      html = ecoCard(`<div class="scroll"><table>
+        <thead><tr><th>Indicateur (par an)</th><th>Impact'IA — inférence</th><th>dont traitement des requêtes</th><th>EcoLogits</th><th>Ratio Impact'IA / EcoLogits</th></tr></thead>
+        <tbody>${rows.map((d) => {
+          const x = eco.impacts[d.ecologits];
+          return `<tr><td>${ic(d.icon, "muted")} ${esc(d.label)}</td><td class="n">${fmt(d, r.inference[d.key])}</td><td class="n">${fmt(d, request.impacts[d.key])}</td><td class="n">${range(d, x)}</td><td class="n"><b>× ${nf(r.inference[d.key] / x.mid, 2)}</b></td></tr>`;
+        }).join("")}</tbody></table></div>
+        ${extra.length ? `<p class="hint">EcoLogits estime aussi : ${extra.map(([k, x]) => `${ECO_EXTRA[k]} ${nf(x.min)} – ${nf(x.max)} ${esc(x.unit)}`).join(" · ")}.</p>` : ""}
+        <p class="hint">Modèle EcoLogits : <code>${esc(req.body.model_name)}</code> · zone ${esc(req.body.electricity_mix_zone)} · requête moyenne de ${int(req.body.output_token_count)} tokens de sortie en ${nf(req.body.request_latency)} s, × ${int(req.requests)} requêtes par an. Ratio calculé sur le milieu de la fourchette EcoLogits.${req.zoneNote ? ` ${esc(req.zoneNote)}` : ""}</p>
+        ${eco.warnings.length ? `<p class="hint">${ic("triangle-alert")} EcoLogits : ${eco.warnings.map(esc).join(" ")}</p>` : ""}`);
+    } catch (e) {
+      html = ecoCard(`<p class="alert">${ic("cloud-off")}<span>EcoLogits est indisponible pour le moment (${esc(e.message)}). Le calcul Impact'IA n'est pas affecté.</span></p>`);
+    }
+    if (seq !== ecoSeq) return; // une saisie plus récente a relancé la comparaison
+    el.innerHTML = html;
+    icons();
+  }, 600);
+}
+$("#ecologits").addEventListener("click", (e) => {
+  if (!e.target.closest("#eco-run")) return;
+  ecoEnabled = true;
+  renderEcologits(ecoLast.r, ecoLast.input);
+});
 
 // ── Animations : jauges qui se remplissent (depuis leur valeur précédente) et compteurs ──
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;

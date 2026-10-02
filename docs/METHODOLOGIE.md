@@ -134,3 +134,14 @@ Le document « Impact'IA vs Ecologits – Comparaison des périmètres modélis�
   - le carbone ne se reproduit pas à l'unité près. Le test vérifie la conclusion du document (Impact'IA plus élevé pour les 24 modèles) et la cohérence du classement (corrélation de rang ≥ 0,85).
 
 Les valeurs EcoLogits 0.10.2 utilisées sont figées dans `test/ecologits-reference.json`, pour ne pas dépendre de la bibliothèque Python. Avec les fichiers de simulation d'origine, ces tolérances pourraient être resserrées.
+
+## 7. Comparaison en direct avec l'API EcoLogits
+
+La section « Comparer avec EcoLogits » du calculateur interroge l'API publique d'EcoLogits (version à date, distincte de la 0.10.2 du document SNCF) :
+
+- EcoLogits estime une requête : on lui envoie une **requête moyenne** du projet (tokens de sortie annuels / requêtes annuelles), avec la **latence de décodage** estimée par Impact'IA (tokens × 1/TPS, sans le préremplissage, qu'EcoLogits ne modélise pas) et la zone électrique correspondant au mix choisi ;
+- la fourchette renvoyée (min–max) est multipliée par le nombre de requêtes annuelles ;
+- le ratio affiché compare l'inférence complète d'Impact'IA au milieu de la fourchette EcoLogits ; la colonne « dont traitement des requêtes » isole la partie la plus proche du périmètre EcoLogits ;
+- une intensité carbone personnalisée ne peut pas être transmise : la zone du mix par défaut est alors utilisée, et l'écran le signale.
+
+Les données envoyées sont le fournisseur, le modèle, les tokens et la latence d'une requête moyenne et la zone électrique ; aucune donnée personnelle.

@@ -9,7 +9,8 @@
       "Mistral Large",
       "Claude Sonnet 4",
       "Gemini 2.5 flash lite"
-    ]
+    ],
+    "ecologitsApi": "https://api.ecologits.ai/v1beta"
   },
   "parameters": {
     "gpuPerServer": {
@@ -497,7 +498,8 @@
           "perUnit": 600
         }
       ],
-      "thresholds": []
+      "thresholds": [],
+      "ecologits": "energy"
     },
     {
       "key": "gwp",
@@ -571,7 +573,8 @@
           "message": "Plus de 10 000 kg CO₂e/an : un plan d'action de mitigation et de mise en œuvre de bonnes pratiques doit être mis en place."
         }
       ],
-      "belowThresholds": "Moins de 1 000 kg CO₂e/an. Les bonnes pratiques ci-dessous restent utiles pour réduire l'empreinte."
+      "belowThresholds": "Moins de 1 000 kg CO₂e/an. Les bonnes pratiques ci-dessous restent utiles pour réduire l'empreinte.",
+      "ecologits": "gwp"
     },
     {
       "key": "water",
@@ -629,7 +632,8 @@
           "perUnit": 4
         }
       ],
-      "thresholds": []
+      "thresholds": [],
+      "ecologits": "wcf"
     }
   ],
   "mixes": [
@@ -639,7 +643,8 @@
       "default": true,
       "values": {
         "gwp": 0.0461
-      }
+      },
+      "ecologitsZone": "FRA"
     },
     {
       "name": "Autre (monde)",
@@ -647,7 +652,8 @@
       "default": false,
       "values": {
         "gwp": 0.458
-      }
+      },
+      "ecologitsZone": "WOR"
     },
     {
       "name": "Europe (UE27)",
@@ -655,7 +661,8 @@
       "default": false,
       "values": {
         "gwp": 0.2099
-      }
+      },
+      "ecologitsZone": "EEE"
     },
     {
       "name": "USA",
@@ -663,7 +670,8 @@
       "default": false,
       "values": {
         "gwp": 0.3844
-      }
+      },
+      "ecologitsZone": "USA"
     },
     {
       "name": "UK",
@@ -671,7 +679,8 @@
       "default": false,
       "values": {
         "gwp": 0.21741
-      }
+      },
+      "ecologitsZone": "GBR"
     },
     {
       "name": "Allemagne",
@@ -679,7 +688,8 @@
       "default": false,
       "values": {
         "gwp": 0.32965
-      }
+      },
+      "ecologitsZone": "DEU"
     },
     {
       "name": "Irlande",
@@ -687,7 +697,8 @@
       "default": false,
       "values": {
         "gwp": 0.25654
-      }
+      },
+      "ecologitsZone": "IRL"
     },
     {
       "name": "Pays Bas",
@@ -695,7 +706,8 @@
       "default": false,
       "values": {
         "gwp": 0.25356
-      }
+      },
+      "ecologitsZone": "NLD"
     },
     {
       "name": "Suède",
@@ -703,7 +715,8 @@
       "default": false,
       "values": {
         "gwp": 0.03329
-      }
+      },
+      "ecologitsZone": "SWE"
     }
   ],
   "requestSizes": [
@@ -722,16 +735,20 @@
   ],
   "providers": {
     "OpenAI": {
-      "logo": "vendor/logos/openai.svg"
+      "logo": "vendor/logos/openai.svg",
+      "ecologits": "openai"
     },
     "Anthropic": {
-      "logo": "vendor/logos/claude-color.svg"
+      "logo": "vendor/logos/claude-color.svg",
+      "ecologits": "anthropic"
     },
     "Mistral AI": {
-      "logo": "vendor/logos/mistral-color.svg"
+      "logo": "vendor/logos/mistral-color.svg",
+      "ecologits": "mistralai"
     },
     "Google": {
-      "logo": "vendor/logos/gemini-color.svg"
+      "logo": "vendor/logos/gemini-color.svg",
+      "ecologits": "google_genai"
     }
   },
   "models": [
@@ -761,7 +778,8 @@
       "ttft": 0.67,
       "flopsPerJoule": 2250000000000,
       "computeKw": 1400000,
-      "published": "2025-10-15"
+      "published": "2025-10-15",
+      "ecologitsModel": "claude-haiku-4-5"
     },
     {
       "provider": "Anthropic",
@@ -803,7 +821,8 @@
       "ttft": 1.63,
       "flopsPerJoule": 2250000000000,
       "computeKw": 1400000,
-      "published": "2025-09-29"
+      "published": "2025-09-29",
+      "ecologitsModel": "claude-sonnet-4-5"
     },
     {
       "provider": "Anthropic",
@@ -817,7 +836,8 @@
       "ttft": 1.68,
       "flopsPerJoule": 2250000000000,
       "computeKw": 1400000,
-      "published": "2026-02-17"
+      "published": "2026-02-17",
+      "ecologitsModel": "claude-sonnet-4-6"
     },
     {
       "provider": "Anthropic",
@@ -831,7 +851,8 @@
       "ttft": 2.45,
       "flopsPerJoule": 2250000000000,
       "computeKw": 1400000,
-      "published": "2026-02-05"
+      "published": "2026-02-05",
+      "ecologitsModel": "claude-opus-4-6"
     },
     {
       "provider": "Google",
@@ -845,7 +866,8 @@
       "ttft": 0.74,
       "flopsPerJoule": 2250000000000,
       "computeKw": 9000000,
-      "published": "2025-06-17"
+      "published": "2025-06-17",
+      "ecologitsModel": "gemini-2.5-flash"
     },
     {
       "provider": "Google",
@@ -859,7 +881,8 @@
       "ttft": 5.87,
       "flopsPerJoule": 2250000000000,
       "computeKw": 9000000,
-      "published": "2025-10-02"
+      "published": "2025-10-02",
+      "ecologitsModel": "gemini-2.5-flash-image"
     },
     {
       "provider": "Google",
@@ -873,7 +896,8 @@
       "ttft": 0.56,
       "flopsPerJoule": 2250000000000,
       "computeKw": 9000000,
-      "published": "2025-07-22"
+      "published": "2025-07-22",
+      "ecologitsModel": "gemini-2.5-flash-lite"
     },
     {
       "provider": "Google",
@@ -887,7 +911,8 @@
       "ttft": 2.83,
       "flopsPerJoule": 2250000000000,
       "computeKw": 9000000,
-      "published": "2024-12-11"
+      "published": "2024-12-11",
+      "ecologitsModel": "gemini-2.5-pro"
     },
     {
       "provider": "Mistral AI",
@@ -901,7 +926,8 @@
       "ttft": 0.23,
       "flopsPerJoule": 2250000000000,
       "computeKw": 200000,
-      "published": "2025-01-13"
+      "published": "2025-01-13",
+      "ecologitsModel": "codestral-latest"
     },
     {
       "provider": "Mistral AI",
@@ -915,7 +941,8 @@
       "ttft": 0.41,
       "flopsPerJoule": 2250000000000,
       "computeKw": 200000,
-      "published": "2025-06-10"
+      "published": "2025-06-10",
+      "ecologitsModel": "magistral-medium-latest"
     },
     {
       "provider": "Mistral AI",
@@ -929,7 +956,8 @@
       "ttft": 0.23,
       "flopsPerJoule": 2250000000000,
       "computeKw": 200000,
-      "published": "2024-10-09"
+      "published": "2024-10-09",
+      "ecologitsModel": "ministral-3b-latest"
     },
     {
       "provider": "Mistral AI",
@@ -943,7 +971,8 @@
       "ttft": 0.27,
       "flopsPerJoule": 2250000000000,
       "computeKw": 200000,
-      "published": "2024-10-09"
+      "published": "2024-10-09",
+      "ecologitsModel": "ministral-8b-latest"
     },
     {
       "provider": "Mistral AI",
@@ -957,7 +986,8 @@
       "ttft": 0.45,
       "flopsPerJoule": 2250000000000,
       "computeKw": 200000,
-      "published": "2024-02-26"
+      "published": "2024-02-26",
+      "ecologitsModel": "mistral-large-latest"
     },
     {
       "provider": "Mistral AI",
@@ -971,7 +1001,8 @@
       "ttft": 0.59,
       "flopsPerJoule": 2250000000000,
       "computeKw": 200000,
-      "published": "2025-08-12"
+      "published": "2025-08-12",
+      "ecologitsModel": "mistral-medium"
     },
     {
       "provider": "Mistral AI",
@@ -999,7 +1030,8 @@
       "ttft": 0.74,
       "flopsPerJoule": 2250000000000,
       "computeKw": 1900000,
-      "published": "2023-03-15"
+      "published": "2023-03-15",
+      "ecologitsModel": "gpt-4"
     },
     {
       "provider": "OpenAI",
@@ -1013,7 +1045,8 @@
       "ttft": 1.02,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2024-11-06"
+      "published": "2024-11-06",
+      "ecologitsModel": "gpt-4-turbo"
     },
     {
       "provider": "OpenAI",
@@ -1027,7 +1060,8 @@
       "ttft": 0.73,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-05-14"
+      "published": "2025-05-14",
+      "ecologitsModel": "gpt-4.1"
     },
     {
       "provider": "OpenAI",
@@ -1041,7 +1075,8 @@
       "ttft": 0.55,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-04-14"
+      "published": "2025-04-14",
+      "ecologitsModel": "gpt-4.1-nano"
     },
     {
       "provider": "OpenAI",
@@ -1055,7 +1090,8 @@
       "ttft": 0.62,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-04-15"
+      "published": "2025-04-15",
+      "ecologitsModel": "gpt-4.1-mini"
     },
     {
       "provider": "OpenAI",
@@ -1069,7 +1105,8 @@
       "ttft": 0.54,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2024-11-20"
+      "published": "2024-11-20",
+      "ecologitsModel": "gpt-4o"
     },
     {
       "provider": "OpenAI",
@@ -1083,7 +1120,8 @@
       "ttft": 0.51,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2024-07-18"
+      "published": "2024-07-18",
+      "ecologitsModel": "gpt-4o-mini"
     },
     {
       "provider": "OpenAI",
@@ -1097,7 +1135,8 @@
       "ttft": 13.64,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-08-07"
+      "published": "2025-08-07",
+      "ecologitsModel": "gpt-5"
     },
     {
       "provider": "OpenAI",
@@ -1111,7 +1150,8 @@
       "ttft": 8.3,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-08-07"
+      "published": "2025-08-07",
+      "ecologitsModel": "gpt-5-mini"
     },
     {
       "provider": "OpenAI",
@@ -1125,7 +1165,8 @@
       "ttft": 6.94,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-08-07"
+      "published": "2025-08-07",
+      "ecologitsModel": "gpt-5-nano"
     },
     {
       "provider": "OpenAI",
@@ -1139,7 +1180,8 @@
       "ttft": 1.11,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-11-13"
+      "published": "2025-11-13",
+      "ecologitsModel": "gpt-5.1"
     },
     {
       "provider": "OpenAI",
@@ -1153,7 +1195,8 @@
       "ttft": 3.47,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-12-09"
+      "published": "2025-12-09",
+      "ecologitsModel": "gpt-5.2"
     },
     {
       "provider": "OpenAI",
@@ -1167,7 +1210,8 @@
       "ttft": 32.5,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-12-09"
+      "published": "2025-12-09",
+      "ecologitsModel": "gpt-5.2-pro"
     },
     {
       "provider": "OpenAI",
@@ -1181,7 +1225,8 @@
       "ttft": 6.7,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-01-31"
+      "published": "2025-01-31",
+      "ecologitsModel": "o3-mini"
     },
     {
       "provider": "OpenAI",
@@ -1195,7 +1240,8 @@
       "ttft": 6.38,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2025-04-16"
+      "published": "2025-04-16",
+      "ecologitsModel": "o4-mini"
     },
     {
       "provider": "OpenAI",
@@ -1223,7 +1269,8 @@
       "ttft": 3.893333333333333,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2026-07-09"
+      "published": "2026-07-09",
+      "ecologitsModel": "gpt-5.6-sol"
     },
     {
       "provider": "OpenAI",
@@ -1237,7 +1284,8 @@
       "ttft": 3.0866666666666664,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2026-07-09"
+      "published": "2026-07-09",
+      "ecologitsModel": "gpt-5.6-terra"
     },
     {
       "provider": "OpenAI",
@@ -1251,7 +1299,8 @@
       "ttft": 5.333333333333333,
       "flopsPerJoule": 2250000000000,
       "computeKw": 2000000,
-      "published": "2026-07-09"
+      "published": "2026-07-09",
+      "ecologitsModel": "gpt-5.6-luna"
     },
     {
       "provider": "Anthropic",
@@ -1265,7 +1314,8 @@
       "ttft": 2.8875,
       "flopsPerJoule": 2250000000000,
       "computeKw": 1400000,
-      "published": "2026-06-30"
+      "published": "2026-06-30",
+      "ecologitsModel": "claude-sonnet-5"
     },
     {
       "provider": "Anthropic",
@@ -1279,7 +1329,8 @@
       "ttft": 1.63,
       "flopsPerJoule": 2250000000000,
       "computeKw": 1400000,
-      "published": "2026-05-28"
+      "published": "2026-05-28",
+      "ecologitsModel": "claude-opus-4-8"
     },
     {
       "provider": "Google",
@@ -1293,7 +1344,8 @@
       "ttft": 2.72,
       "flopsPerJoule": 2250000000000,
       "computeKw": 9000000,
-      "published": "2026-05-19"
+      "published": "2026-05-19",
+      "ecologitsModel": "gemini-3.5-flash"
     }
   ],
   "content": {

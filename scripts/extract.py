@@ -61,6 +61,7 @@ for d in data["dimensions"]:
 old_mixes = {m["name"]: m for m in data["mixes"]}
 data["mixes"] = [
     {
+        **old_mixes.get(r["Sous-catégorie"], {}),  # garde les champs propres au web (zone EcoLogits…)
         "name": r["Sous-catégorie"],
         "flag": old_mixes.get(r["Sous-catégorie"], {}).get("flag") or FLAGS.get(r["Sous-catégorie"], "xx"),
         "default": old_mixes.get(r["Sous-catégorie"], {}).get("default", r["Sous-catégorie"] == "France"),
@@ -73,11 +74,14 @@ data["mixes"] = [
 ws = wb["Paramètres"]
 data["requestSizes"] = [{"label": ws.cell(r, 2).value, "tokens": ws.cell(r, 3).value} for r in range(2, 5)]
 
+before = {m["name"]: m for m in data["models"]}
 models = []
 for r in table("Modèles_IA", "Tableau1"):
+    name = r["Nom du modèle"].strip()
     models.append({
+        **before.get(name, {}),  # garde les champs propres au web (identifiant EcoLogits…)
         "provider": r["Fournisseurs"],
-        "name": r["Nom du modèle"].strip(),
+        "name": name,
         "category": r["Catégorie"],
         "pTotal": r["P_total"],
         "pActive": r["P_active_moyenne"],
@@ -89,7 +93,6 @@ for r in table("Modèles_IA", "Tableau1"):
         "computeKw": r["Compute Capacity (kW)"] or 0,
         "published": r["Date de publication"].date().isoformat(),
     })
-before = {m["name"]: m for m in data["models"]}
 for m in models:
     if before.get(m["name"]) != m:
         changes.append(f"modèle {m['name']} {'mis à jour' if m['name'] in before else 'ajouté'}")

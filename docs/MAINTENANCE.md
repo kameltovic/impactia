@@ -9,6 +9,7 @@ index.html, app.js      Calculateur (interface). Aucun chiffre ni nom de modèle
 admin.html, admin.js    Back-office : édition de data.json dans le navigateur, validation, export.
 calc.js                 Moteur de calcul (portage de l'onglet « Calcul » du classeur).
 validate.js             Contrôles de cohérence de data.json (back-office + tests).
+ecologits.js            Comparaison avec EcoLogits via son API publique (préparation de la requête, appel, passage à l'année).
 data.json               TOUTES les données : modèles, paramètres, dimensions, mix, contenus.
 styles.css              Styles partagés (palette SNCF en variables CSS en tête de fichier).
 vendor/                 Bibliothèques front copiées localement (Lucide, Tom Select, drapeaux, logos).
@@ -87,6 +88,17 @@ Onglet « Mix électriques », bouton « Ajouter un mix » : nom, code drapeau I
 ### Fournisseurs et logos
 
 Les logos disponibles sont dans `vendor/logos/`. Pour en ajouter un : l'ajouter à la liste de `scripts/vendor.mjs` (nom d'icône de [Lobe Icons](https://lobehub.com/icons)), lancer `npm run vendor`, puis saisir le chemin dans l'onglet « Fournisseurs ». Sans logo, l'initiale du fournisseur s'affiche.
+
+### Comparaison avec EcoLogits
+
+Sous les résultats, une section compare les chiffres d'Impact'IA à ceux de l'[API EcoLogits](https://github.com/mlco2/ecologits-api) (`meta.ecologitsApi`, actuellement `https://api.ecologits.ai/v1beta`). L'appel ne part qu'après un clic de l'utilisateur, puis se met à jour 600 ms après chaque saisie (réponses mises en cache). Correspondances à tenir à jour dans le back-office :
+
+- **modèle** : colonne « Identifiant EcoLogits » (liste : `GET https://api.ecologits.ai/v1beta/models/<fournisseur>`). Vide = « non couvert par EcoLogits » ;
+- **fournisseur** : onglet « Fournisseurs » (`openai`, `anthropic`, `mistralai`, `google_genai`…) ;
+- **pays** : colonne « Zone EcoLogits » des mix (code ISO à 3 lettres, `WOR` pour le monde, `EEE` pour l'Europe) ;
+- **dimension** : champ « Indicateur EcoLogits » (`energy`, `gwp`, `wcf` pour l'eau, `adpe`, `pe`), à renseigner seulement si les unités sont les mêmes que celles de la dimension.
+
+L'API est en version bêta : si elle change d'adresse ou de format, seul `ecologits.js` est à adapter. Vider `meta.ecologitsApi` masque la section.
 
 ### Bonnes pratiques et références
 

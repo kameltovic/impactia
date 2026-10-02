@@ -87,11 +87,12 @@ function renderModels() {
     ["flopsPerJoule", "FLOP par joule", "num"],
     ["computeKw", "Capacité de calcul du fournisseur (kW)", "num"],
     ["published", "Publication", "date"],
+    ["ecologitsModel", "Identifiant EcoLogits", "text", 'style="min-width:170px" placeholder="non couvert"'],
   ];
   const providers = [...new Set(data.models.map((m) => m.provider))];
   const categories = [...new Set(data.models.map((m) => m.category))];
   return `<h2>${ic("bot")} Modèles</h2>
-  <p class="intro">Un modèle = une ligne. La catégorie « Embedding » sert au calcul du RAG et n'apparaît pas dans le calculateur. Laisser le TPS vide applique la formule de latence Ecologits. Dupliquer un modèle proche est le moyen le plus rapide d'en ajouter un.</p>
+  <p class="intro">Un modèle = une ligne. La catégorie « Embedding » sert au calcul du RAG et n'apparaît pas dans le calculateur. Laisser le TPS vide applique la formule de latence Ecologits. Dupliquer un modèle proche est le moyen le plus rapide d'en ajouter un. L'identifiant EcoLogits (ex. <code>gpt-4o</code>) active la comparaison ; liste des identifiants : <code>api.ecologits.ai/v1beta/models/&lt;fournisseur&gt;</code>.</p>
   <datalist id="providers-list">${providers.map((p) => `<option value="${esc(p)}">`).join("")}</datalist>
   <datalist id="categories-list">${categories.map((c) => `<option value="${esc(c)}">`).join("")}</datalist>
   <div class="card scroll"><table class="edit"><thead><tr>${cols.map((c) => `<th>${c[1]}</th>`).join("")}<th></th></tr></thead><tbody>
@@ -134,8 +135,9 @@ function renderDimensions() {
       <label>Libellé${field(`dimensions.${i}.label`)}</label>
       <label>Unité de calcul${field(`dimensions.${i}.unit`)}</label>
       <label>Picto Lucide ${ic(d.icon)}${field(`dimensions.${i}.icon`)}</label>
+      <label>Indicateur EcoLogits (comparaison)${field(`dimensions.${i}.ecologits`, "text", 'placeholder="energy, gwp, wcf, adpe, pe"')}</label>
       <label>Couleur${field(`dimensions.${i}.color`, "color")}</label>
-      <label>Couleur (mode sombre)${field(`dimensions.${i}.colorDark`, "color")}</label>
+      <label>Couleur (mode sombre)<input type="color" data-path="dimensions.${i}.colorDark" value="${esc(d.colorDark || d.color)}"></label>
     </div>
     <h3>Facteurs par activité</h3>
     <table class="edit"><tbody>${Object.entries(ACTIVITIES).map(([k, help]) => `<tr><td class="key">${k}</td><td style="width:180px">${field(`dimensions.${i}.factors.${k}`, k === "gridInference" ? "numOrMix" : "num")}</td><td class="help">${esc(help)}${d.excel?.[k] ? ` — Excel : ${esc(d.excel[k])}` : ""}</td></tr>`).join("")}
@@ -158,8 +160,8 @@ function renderMixes() {
   const mixDims = data.dimensions.filter((d) => d.factors.gridInference === "mix");
   return `<h2>${ic("plug-zap")} Mix électriques</h2>
   <p class="intro">Facteurs par kWh selon le pays d'inférence, pour chaque dimension dont le facteur « gridInference » vaut « mix ». Le drapeau est un code pays ISO (fr, de, us…) ; « un » affiche le drapeau des Nations unies.</p>
-  <div class="card"><table class="edit"><thead><tr><th>Défaut</th><th>Pays / zone</th><th>Drapeau</th>${mixDims.map((d) => `<th>${esc(d.label)} (${esc(d.unit)}/kWh)</th>`).join("")}<th></th></tr></thead><tbody>
-  ${data.mixes.map((m, i) => `<tr><td><input type="radio" name="mix-default" data-default-mix="${i}" ${m.default ? "checked" : ""}></td><td>${field(`mixes.${i}.name`)}</td><td style="white-space:nowrap"><span class="fi fi-${esc(m.flag)}"></span> ${field(`mixes.${i}.flag`, "text", 'style="width:70px"')}</td>${mixDims.map((d) => `<td>${field(`mixes.${i}.values.${d.key}`, "num")}</td>`).join("")}${rowActions("mixes", i)}</tr>`).join("")}
+  <div class="card"><table class="edit"><thead><tr><th>Défaut</th><th>Pays / zone</th><th>Drapeau</th><th>Zone EcoLogits</th>${mixDims.map((d) => `<th>${esc(d.label)} (${esc(d.unit)}/kWh)</th>`).join("")}<th></th></tr></thead><tbody>
+  ${data.mixes.map((m, i) => `<tr><td><input type="radio" name="mix-default" data-default-mix="${i}" ${m.default ? "checked" : ""}></td><td>${field(`mixes.${i}.name`)}</td><td style="white-space:nowrap"><span class="fi fi-${esc(m.flag)}"></span> ${field(`mixes.${i}.flag`, "text", 'style="width:70px"')}</td><td>${field(`mixes.${i}.ecologitsZone`, "text", 'style="width:80px" placeholder="FRA"')}</td>${mixDims.map((d) => `<td>${field(`mixes.${i}.values.${d.key}`, "num")}</td>`).join("")}${rowActions("mixes", i)}</tr>`).join("")}
   </tbody></table></div>
   <p><button class="btn" data-add="mixes" type="button">${ic("plus")}Ajouter un mix</button></p>`;
 }
@@ -168,8 +170,8 @@ function renderProviders() {
   for (const p of new Set(data.models.map((m) => m.provider))) data.providers[p] ??= { logo: "" };
   return `<h2>${ic("building-2")} Fournisseurs</h2>
   <p class="intro">Logo affiché à côté des modèles. Les logos disponibles sont dans <code>vendor/logos/</code> (voir <code>scripts/vendor.mjs</code>) ; sans logo, l'initiale du fournisseur s'affiche.</p>
-  <div class="card"><table class="edit"><thead><tr><th>Fournisseur</th><th>Logo (chemin)</th><th>Aperçu</th></tr></thead><tbody>
-  ${Object.keys(data.providers).map((p) => `<tr><td>${esc(p)}</td><td>${field(`providers.${p}.logo`)}</td><td>${data.providers[p].logo ? `<img src="${esc(data.providers[p].logo)}" alt="" width="20" height="20">` : "—"}</td></tr>`).join("")}
+  <div class="card"><table class="edit"><thead><tr><th>Fournisseur</th><th>Logo (chemin)</th><th>Aperçu</th><th>Fournisseur EcoLogits</th></tr></thead><tbody>
+  ${Object.keys(data.providers).map((p) => `<tr><td>${esc(p)}</td><td>${field(`providers.${p}.logo`)}</td><td>${data.providers[p].logo ? `<img src="${esc(data.providers[p].logo)}" alt="" width="20" height="20">` : "—"}</td><td>${field(`providers.${p}.ecologits`, "text", 'placeholder="openai, anthropic, mistralai, google_genai…"')}</td></tr>`).join("")}
   </tbody></table></div>`;
 }
 
@@ -180,6 +182,7 @@ function renderGeneral() {
   <section class="card" style="margin-bottom:16px"><div class="grid2">
     <label>Titre${field("meta.title")}</label>
     <label>Licence${field("meta.license")}</label>
+    <label>API EcoLogits (vide = section masquée)${field("meta.ecologitsApi")}</label>
     <label>Modèle sélectionné par défaut${sel("meta.defaultModel", usable)}</label>
     ${(data.meta.comparisonModels ?? []).map((_, i) => `<label>Modèle de comparaison ${i + 1}${sel(`meta.comparisonModels.${i}`, usable)}</label>`).join("")}
   </div><p class="hint">Attribution : ${esc(data.meta.attribution)}</p></section>
