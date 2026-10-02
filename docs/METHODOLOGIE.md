@@ -118,3 +118,19 @@ En vérifiant le portage, nous avons relevé des différences entre le guide mé
 6. **Valeurs secondaires** : nœud du front (19,93 kg et 7,27 m³ contre 42,13 kg et 43,57 m³), disque dur (640 kg contre 1 043 kg), pare-feu (0,09 kW contre 0,095 kW), mix mondial (0,458 contre 0,473).
 7. **Cohérence d'unités** : la capacité de calcul en kW est multipliée par des FLOP/W (facteur 1 000 manquant, compensé par ailleurs) [N115-N116] ; la latence d'embedding compte la constante de 97 ms une fois par an au lieu d'une fois par requête [M126].
 8. **Références** : dans l'onglet ♻️ du classeur, le lien de l'AFNOR Spec 2314 pointe vers la page du RGESN.
+
+## 6. Comparaison avec Ecologits (tests `test/ecologits.test.js`)
+
+Le document « Impact'IA vs Ecologits – Comparaison des périmètres modélisés » (10/09/2026) sert de seconde référence. Ce qu'on a établi en cherchant à le reproduire :
+
+- **Pages 4-5** (76 M de tokens d'entrée et 76 M de sortie par mois, 1 000 requêtes/mois, 33 modèles) :
+  - la part des composants hors GPU se calcule sur l'**électricité** du traitement des requêtes, `1 − E_GPU / E_requêtes`. Le moteur retrouve médiane, minimum (Gemini 2.5 pro) et maximum à 1 point près ;
+  - la part de l'entraînement dans le GES est retrouvée en médiane (13,5 % contre 13 %), avec le même maximum (Mistral Medium) mais plus bas : 55 % contre 63 %. Ce maximum dépend du nombre de modèles Mistral récents ; la table des modèles a changé depuis le document.
+- **Page 9** (ratios Impact'IA / Ecologits sur 24 modèles) :
+  - le tableau a été produit avec la **bibliothèque EcoLogits 0.10.2** (152 M de tokens de sortie, zone France), et non avec les cellules « Ecologits » du classeur (N164 à N234). Ces cellules s'écartent d'ailleurs d'EcoLogits : facteur France écrit en dur [N209], PUE appliqué à l'eau hors site [N234], latence comptée deux fois dans l'embarqué [N220] ;
+  - côté Impact'IA, ce sont les totaux d'inférence [N104, N107, N110] pour 608 M de tokens d'entrée et 152,5 M de sortie par an, sans embedding ;
+  - l'électricité et l'eau se reproduisent à 6 % près par modèle, avec un facteur global de 1,40 constant sur les 24 modèles. Nous ne l'expliquons pas ; un écart de volume de tokens entre les deux simulations est probable ;
+  - le ratio « eau » du document divise les litres d'Impact'IA par l'**énergie** EcoLogits (kWh), et non par son eau : c'est vraisemblablement une erreur dans le document, reproduite telle quelle par le test ;
+  - le carbone ne se reproduit pas à l'unité près. Le test vérifie la conclusion du document (Impact'IA plus élevé pour les 24 modèles) et la cohérence du classement (corrélation de rang ≥ 0,85).
+
+Les valeurs EcoLogits 0.10.2 utilisées sont figées dans `test/ecologits-reference.json`, pour ne pas dépendre de la bibliothèque Python. Avec les fichiers de simulation d'origine, ces tolérances pourraient être resserrées.

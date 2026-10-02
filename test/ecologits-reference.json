@@ -1,0 +1,269 @@
+{
+ "source": "Impact'IA vs Ecologits – Comparaison des périmètres modélisés, p. 9 ; EcoLogits 0.10.2 (152 M tokens de sortie, zone FRA, milieu de fourchette)",
+ "models": {
+  "Claude Haiku 4.5": {
+   "pdf": {
+    "kwh": 3.0,
+    "gwp": 2.7,
+    "water": 41.8
+   },
+   "ecologits": {
+    "energyKwh": 16.650659183450667,
+    "gwpKg": 1.211935617970451
+   }
+  },
+  "Claude Sonnet 4.5": {
+   "pdf": {
+    "kwh": 1.5,
+    "gwp": 1.5,
+    "water": 19.6
+   },
+   "ecologits": {
+    "energyKwh": 302.13036394064886,
+    "gwpKg": 24.813246407768034
+   }
+  },
+  "Claude Sonnet 4.6": {
+   "pdf": {
+    "kwh": 1.6,
+    "gwp": 1.6,
+    "water": 18.4
+   },
+   "ecologits": {
+    "energyKwh": 289.9466767109218,
+    "gwpKg": 21.57658597180962
+   }
+  },
+  "Claude Opus 4.6": {
+   "pdf": {
+    "kwh": 1.5,
+    "gwp": 1.7,
+    "water": 16.9
+   },
+   "ecologits": {
+    "energyKwh": 732.1035937578409,
+    "gwpKg": 51.73478072797132
+   }
+  },
+  "Gemini 2.5 flash": {
+   "pdf": {
+    "kwh": 1.6,
+    "gwp": 1.7,
+    "water": 14.0
+   },
+   "ecologits": {
+    "energyKwh": 266.98537429717015,
+    "gwpKg": 17.19132775585022
+   }
+  },
+  "Gemini 2.5 flash image": {
+   "pdf": {
+    "kwh": 1.6,
+    "gwp": 2.1,
+    "water": 12.6
+   },
+   "ecologits": {
+    "energyKwh": 251.15829566372895,
+    "gwpKg": 12.90538971052785
+   }
+  },
+  "Gemini 2.5 flash lite": {
+   "pdf": {
+    "kwh": 5.1,
+    "gwp": 5.1,
+    "water": 74.0
+   },
+   "ecologits": {
+    "energyKwh": 9.480986750529581,
+    "gwpKg": 0.6378385419591178
+   }
+  },
+  "Gemini 2.5 pro": {
+   "pdf": {
+    "kwh": 1.4,
+    "gwp": 1.7,
+    "water": 5.0
+   },
+   "ecologits": {
+    "energyKwh": 2921.9158970712165,
+    "gwpKg": 138.75534947701215
+   }
+  },
+  "Codestral": {
+   "pdf": {
+    "kwh": 4.5,
+    "gwp": 4.0,
+    "water": 68.3
+   },
+   "ecologits": {
+    "energyKwh": 11.38182944208947,
+    "gwpKg": 0.9041732443950732
+   }
+  },
+  "Magistral Medium": {
+   "pdf": {
+    "kwh": 1.8,
+    "gwp": 1.6,
+    "water": 18.6
+   },
+   "ecologits": {
+    "energyKwh": 80.16206047514109,
+    "gwpKg": 6.215434610597949
+   }
+  },
+  "Ministral 3b": {
+   "pdf": {
+    "kwh": 4.4,
+    "gwp": 2.8,
+    "water": 65.2
+   },
+   "ecologits": {
+    "energyKwh": 10.75920983193333,
+    "gwpKg": 1.1527069260826386
+   }
+  },
+  "Ministral 8b": {
+   "pdf": {
+    "kwh": 4.4,
+    "gwp": 3.0,
+    "water": 65.1
+   },
+   "ecologits": {
+    "energyKwh": 10.658674144631778,
+    "gwpKg": 1.0251762329821474
+   }
+  },
+  "Mistral Large": {
+   "pdf": {
+    "kwh": 1.8,
+    "gwp": 1.9,
+    "water": 20.4
+   },
+   "ecologits": {
+    "energyKwh": 90.87876917128366,
+    "gwpKg": 6.545745010439971
+   }
+  },
+  "Mistral Medium": {
+   "pdf": {
+    "kwh": 1.8,
+    "gwp": 1.7,
+    "water": 19.4
+   },
+   "ecologits": {
+    "energyKwh": 80.04531329317652,
+    "gwpKg": 6.185435576781523
+   }
+  },
+  "GPT-4.1": {
+   "pdf": {
+    "kwh": 1.5,
+    "gwp": 1.6,
+    "water": 17.6
+   },
+   "ecologits": {
+    "energyKwh": 280.141858168697,
+    "gwpKg": 20.922805733331884
+   }
+  },
+  "GPT-4.1 nano": {
+   "pdf": {
+    "kwh": 2.3,
+    "gwp": 1.5,
+    "water": 36.3
+   },
+   "ecologits": {
+    "energyKwh": 22.27569052173439,
+    "gwpKg": 2.34491986650779
+   }
+  },
+  "GPT-4.1-mini": {
+   "pdf": {
+    "kwh": 2.3,
+    "gwp": 2.3,
+    "water": 28.4
+   },
+   "ecologits": {
+    "energyKwh": 59.95305763985701,
+    "gwpKg": 4.641976847835318
+   }
+  },
+  "GPT-5": {
+   "pdf": {
+    "kwh": 1.7,
+    "gwp": 2.0,
+    "water": 23.5
+   },
+   "ecologits": {
+    "energyKwh": 253.43508513541775,
+    "gwpKg": 17.887304265309595
+   }
+  },
+  "GPT-5 mini": {
+   "pdf": {
+    "kwh": 2.0,
+    "gwp": 2.2,
+    "water": 26.5
+   },
+   "ecologits": {
+    "energyKwh": 38.5015154194851,
+    "gwpKg": 2.466616629721799
+   }
+  },
+  "GPT-5 nano": {
+   "pdf": {
+    "kwh": 4.9,
+    "gwp": 4.9,
+    "water": 71.3
+   },
+   "ecologits": {
+    "energyKwh": 9.848602558994067,
+    "gwpKg": 0.6655622934979448
+   }
+  },
+  "GPT-5.1": {
+   "pdf": {
+    "kwh": 1.7,
+    "gwp": 1.9,
+    "water": 20.0
+   },
+   "ecologits": {
+    "energyKwh": 249.34046275491926,
+    "gwpKg": 16.86457678459122
+   }
+  },
+  "GPT-5.2": {
+   "pdf": {
+    "kwh": 1.6,
+    "gwp": 1.7,
+    "water": 17.5
+   },
+   "ecologits": {
+    "energyKwh": 301.24898808801896,
+    "gwpKg": 21.52105474528208
+   }
+  },
+  "GPT-5.2 pro": {
+   "pdf": {
+    "kwh": 1.4,
+    "gwp": 1.4,
+    "water": 9.9
+   },
+   "ecologits": {
+    "energyKwh": 32446.72739133086,
+    "gwpKg": 2126.4860463786436
+   }
+  },
+  "o4 mini": {
+   "pdf": {
+    "kwh": 4.7,
+    "gwp": 4.6,
+    "water": 66.1
+   },
+   "ecologits": {
+    "energyKwh": 10.50419849571023,
+    "gwpKg": 0.6940768777513946
+   }
+  }
+ }
+}
