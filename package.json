@@ -1,0 +1,10 @@
+{
+  "name": "impactia-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "portless impactia-web sh -c 'python3 -m http.server $PORT'",
+    "test": "node --test",
+    "extract": "uv run --with openpyxl scripts/extract.py"
+  }
+}
