@@ -142,8 +142,6 @@ function render() {
   }
   const p = r.project;
   const T = r.total;
-  const per = (d) =>
-    [r.perRequest && `${fmt(d, r.perRequest[d.key])} / requête`, r.perToken && `${fmt(d, r.perToken[d.key])} / token de sortie`].filter(Boolean).join("<br>");
   const maxStep = Object.fromEntries(dims.map((d) => [d.key, Math.max(...r.steps.map((s) => s.impacts[d.key]))]));
   const maxCmp = Object.fromEntries(dims.map((d) => [d.key, Math.max(...cmp.map((c) => c.total[d.key]))]));
   const eqTotal = r.equipment.reduce((a, e) => a + e.kwh, 0);
@@ -152,20 +150,13 @@ function render() {
       .map((pr) => `<optgroup label="${esc(pr)}">${usable.filter((m) => m.provider === pr).map((m) => `<option value="${esc(m.name)}"${m.name === sel ? " selected" : ""}>${esc(m.name)} — ${esc(m.category)}</option>`).join("")}</optgroup>`)
       .join("");
 
+  last = { r, input };
   $("#results").innerHTML = `
   <section class="card span-12">
-    ${h2("chart-column", "Résultats annuels")}
+    <div class="res-head">${h2("chart-column", "Résultats annuels")}${data.meta.ecologitsApi ? resultTabs() : ""}</div>
     <p class="summary">${logo(r.model.provider)} <b>${esc(r.model.name)}</b> (${esc(r.model.provider)}, catégorie ${esc(r.model.category)}) —
       ${int(p.outTokens)} tokens de sortie, ${int(p.inTokens)} tokens d'entrée${p.embTokens ? `, ${int(p.embTokens)} tokens d'embedding` : ""} et ${int(p.requestsYear)} requêtes par an.</p>
-    <div class="kpis">
-      ${dims.map((d) => `<div class="kpi" style="--c:${color(d)}">
-        <div class="t"><span class="chip">${ic(d.icon)}</span>${esc(d.label)}</div>
-        <div class="v"><span data-count="${d.key}" data-v="${T[d.key]}">${fmt(d, T[d.key])}</span> <small>/ an</small></div>
-        <div class="s">${per(d)}</div>
-        <ul class="eq">${(d.equivalences ?? []).map((e, n) => `<li>${ic(e.icon)}${n ? "ou " : "≈ "}${int(Math.ceil(T[d.key] * e.perUnit))} ${esc(e.label)}</li>`).join("")}</ul>
-      </div>`).join("")}
-    </div>
-    ${alertFor(r)}
+    <div id="kpi-area"></div>
   </section>
 
   <section class="card span-5">
@@ -205,72 +196,109 @@ function render() {
       })
       .join("")}</tbody></table></div></div>`).join("")}</div>
   </section>`;
+  renderKpis();
   icons();
   animate();
-  renderEcologits(r, input);
 }
 
-// ── Comparaison avec EcoLogits (API publique, appelée seulement après un clic) ──
-const ECO_EXTRA = { adpe: "Ressources abiotiques (ADPe)", pe: "Énergie primaire" };
-let ecoEnabled = false;
+// ── Indicateurs annuels : onglets Impact'IA / EcoLogits, même carte pour les deux ──
+let last = null; // dernier { r, input } calculé
+let resultTab = "impactia";
 let ecoSeq = 0;
 let ecoTimer;
-let ecoLast = null;
-function ecoCard(body) {
-  return `<section class="card span-12 eco">
-    ${h2("scale-3d", "Comparer avec EcoLogits")}
-    <p class="hint" style="margin-top:0">Mêmes volumes, estimés par <a href="https://ecologits.ai" target="_blank" rel="noopener">EcoLogits</a> (GenAI Impact), via son API publique. Les périmètres diffèrent : Impact'IA ajoute notamment le RAG, le front applicatif, le traitement des tokens d'entrée, le bâtiment et les équipements réseau, et pondère l'eau par sa rareté locale (AWARE). Un ratio supérieur à 1 est donc attendu.</p>
-    ${body}
-  </section>`;
+const ecoResults = new Map();
+const ECO_EXTRA = { adpe: { label: "Ressources abiotiques (ADPe)", icon: "gem" }, pe: { label: "Énergie primaire", icon: "flame" } };
+
+const resultTabs = () => `<div class="seg res-tabs" role="tablist" aria-label="Méthode d'estimation">
+  ${[["impactia", "Impact'IA", "leaf"], ["ecologits", "EcoLogits", "scale-3d"]]
+    .map(([k, l, i]) => `<button type="button" role="tab" data-rtab="${k}" aria-selected="${resultTab === k}">${ic(i)}${l}</button>`)
+    .join("")}</div>`;
+
+/** Carte d'indicateur commune aux deux onglets. */
+const kpiCard = ({ c, icon, label, count, value, sub = "", eq = [], foot = "" }) => `<div class="kpi" style="--c:${c}">
+  <div class="t"><span class="chip">${ic(icon)}</span>${esc(label)}</div>
+  <div class="v"><span${count ? ` data-count="${count.key}" data-v="${count.v}"` : ""}>${value}</span> <small>/ an</small></div>
+  <div class="s">${sub}</div>
+  ${eq.length ? `<ul class="eq">${eq.map((e, n) => `<li>${ic(e.icon)}${n ? "ou " : "≈ "}${e.text}</li>`).join("")}</ul>` : ""}
+  ${foot}
+</div>`;
+const equivalences = (d, v) => (d.equivalences ?? []).map((e) => ({ icon: e.icon, text: `${int(Math.ceil(v * e.perUnit))} ${esc(e.label)}` }));
+const perLines = (d, v, requests, tokens) =>
+  [requests > 0 && `${fmt(d, v / requests)} / requête`, tokens > 0 && `${fmt(d, v / tokens)} / token de sortie`].filter(Boolean).join("<br>");
+
+function impactKpis(r) {
+  const p = r.project;
+  return `<div class="kpis">${dims
+    .map((d) => kpiCard({ c: color(d), icon: d.icon, label: d.label, count: { key: d.key, v: r.total[d.key] }, value: fmt(d, r.total[d.key]), sub: perLines(d, r.total[d.key], p.requestsYear, p.outTokens), eq: equivalences(d, r.total[d.key]) }))
+    .join("")}</div>${alertFor(r)}`;
 }
-function renderEcologits(r, input) {
-  const el = $("#ecologits");
-  if (!data.meta.ecologitsApi) return void (el.innerHTML = "");
-  ecoLast = { r, input };
+
+const ecoDims = () => dims.filter((d) => d.ecologits);
+const ECO_NOTE = `Périmètre EcoLogits : inférence seule (GPU et serveur), sans entraînement, RAG, front applicatif ni traitement des tokens d'entrée. Les ratios comparent donc à l'<b>inférence</b> d'Impact'IA ; l'eau d'Impact'IA est en outre pondérée par sa rareté locale (AWARE). Un ratio supérieur à 1 est attendu.`;
+
+function ecoKpis(r, eco, req) {
+  const p = r.project;
+  const cards = ecoDims()
+    .filter((d) => eco.impacts[d.ecologits])
+    .map((d) => {
+      const x = eco.impacts[d.ecologits];
+      return kpiCard({
+        c: color(d), icon: d.icon, label: d.label, count: { key: d.key, v: x.mid }, value: fmt(d, x.mid),
+        sub: `Fourchette ${fmt(d, x.min)} – ${fmt(d, x.max)}<br>${perLines(d, x.mid, p.requestsYear, p.outTokens)}`,
+        eq: equivalences(d, x.mid),
+        foot: `<div class="kpi-cmp">${ic("leaf")} Impact'IA, inférence : <b>${fmt(d, r.inference[d.key])}</b><span class="ratio-badge">× ${nf(r.inference[d.key] / x.mid, 2)}</span></div>`,
+      });
+    });
+  const extra = Object.entries(eco.impacts)
+    .filter(([k]) => ECO_EXTRA[k] && !dims.some((d) => d.ecologits === k))
+    .map(([k, x]) => kpiCard({ c: "var(--sncf-prune)", icon: ECO_EXTRA[k].icon, label: ECO_EXTRA[k].label, value: `${nf(x.mid)} ${esc(x.unit)}`, sub: `Fourchette ${nf(x.min)} – ${nf(x.max)} ${esc(x.unit)}<br>Non estimé par Impact'IA` }));
+  return `<div class="kpis">${cards.join("")}${extra.join("")}</div>
+    <p class="hint eco-note">${ic("info")} ${ECO_NOTE}</p>
+    <p class="hint">Modèle EcoLogits <code>${esc(req.body.model_name)}</code>, zone ${esc(req.body.electricity_mix_zone)} : requête moyenne de ${int(req.body.output_token_count)} tokens de sortie en ${nf(req.body.request_latency)} s, × ${int(req.requests)} requêtes par an ; valeur affichée = milieu de la fourchette.${req.zoneNote ? ` ${esc(req.zoneNote)}` : ""}
+    ${eco.warnings.length ? `<br>${ic("triangle-alert")} EcoLogits : ${eco.warnings.map(esc).join(" ")}` : ""}
+    <br>Données envoyées à <a href="https://ecologits.ai" target="_blank" rel="noopener">api.ecologits.ai</a> : fournisseur, modèle, tokens et latence d'une requête moyenne, zone électrique.</p>`;
+}
+
+const ecoLoading = () =>
+  `<div class="kpis">${ecoDims().map((d) => kpiCard({ c: color(d), icon: d.icon, label: d.label, value: "…", sub: `${ic("loader")} Interrogation d'EcoLogits…` })).join("")}</div><p class="hint eco-note">${ic("info")} ${ECO_NOTE}</p>`;
+
+function renderKpis() {
+  const area = $("#kpi-area");
+  if (!area || !last) return;
+  const { r, input } = last;
   clearTimeout(ecoTimer);
-  const seq = ++ecoSeq; // toute réponse plus ancienne encore en vol sera ignorée
-  if (!ecoEnabled) {
-    el.innerHTML = ecoCard(`<button type="button" class="btn-eco" id="eco-run">${ic("scale-3d")}Lancer la comparaison</button>
-      <p class="hint">Données envoyées à api.ecologits.ai : fournisseur, modèle, tokens de sortie et latence d'une requête moyenne, zone électrique. Aucune donnée personnelle.</p>`);
-    return icons();
-  }
+  const seq = ++ecoSeq; // une réponse plus ancienne encore en vol sera ignorée
+  if (resultTab === "impactia") return void (area.innerHTML = impactKpis(r));
   const req = ecologitsRequest(data, r, input);
-  if (req.unavailable) {
-    el.innerHTML = ecoCard(`<p class="alert">${ic("info")}<span>${esc(req.unavailable)}</span></p>`);
-    return icons();
-  }
-  el.querySelector(".eco")?.classList.add("loading");
-  if (!el.querySelector(".eco table")) el.innerHTML = ecoCard(`<p class="hint">${ic("loader")} Interrogation d'EcoLogits…</p>`);
-  icons();
+  if (req.unavailable) return void (area.innerHTML = `<div class="alert">${ic("info")}<span>${esc(req.unavailable)}</span></div>`);
+  const key = JSON.stringify([req.body, req.requests]);
+  if (ecoResults.has(key)) return void (area.innerHTML = ecoKpis(r, ecoResults.get(key), req));
+  if (area.querySelector(".kpi-cmp")) area.classList.add("loading");
+  else area.innerHTML = ecoLoading();
   ecoTimer = setTimeout(async () => {
     let html;
     try {
       const eco = await fetchEcologits(data, req);
-      const rows = dims.filter((d) => d.ecologits && eco.impacts[d.ecologits]);
-      const request = r.steps.find((s) => s.key === "request");
-      const extra = Object.entries(eco.impacts).filter(([k]) => !dims.some((d) => d.ecologits === k) && ECO_EXTRA[k]);
-      const range = (d, x) => `${fmt(d, x.min)} – ${fmt(d, x.max)}`;
-      html = ecoCard(`<div class="scroll"><table>
-        <thead><tr><th>Indicateur (par an)</th><th>Impact'IA — inférence</th><th>dont traitement des requêtes</th><th>EcoLogits</th><th>Ratio Impact'IA / EcoLogits</th></tr></thead>
-        <tbody>${rows.map((d) => {
-          const x = eco.impacts[d.ecologits];
-          return `<tr><td>${ic(d.icon, "muted")} ${esc(d.label)}</td><td class="n">${fmt(d, r.inference[d.key])}</td><td class="n">${fmt(d, request.impacts[d.key])}</td><td class="n">${range(d, x)}</td><td class="n"><b>× ${nf(r.inference[d.key] / x.mid, 2)}</b></td></tr>`;
-        }).join("")}</tbody></table></div>
-        ${extra.length ? `<p class="hint">EcoLogits estime aussi : ${extra.map(([k, x]) => `${ECO_EXTRA[k]} ${nf(x.min)} – ${nf(x.max)} ${esc(x.unit)}`).join(" · ")}.</p>` : ""}
-        <p class="hint">Modèle EcoLogits : <code>${esc(req.body.model_name)}</code> · zone ${esc(req.body.electricity_mix_zone)} · requête moyenne de ${int(req.body.output_token_count)} tokens de sortie en ${nf(req.body.request_latency)} s, × ${int(req.requests)} requêtes par an. Ratio calculé sur le milieu de la fourchette EcoLogits.${req.zoneNote ? ` ${esc(req.zoneNote)}` : ""}</p>
-        ${eco.warnings.length ? `<p class="hint">${ic("triangle-alert")} EcoLogits : ${eco.warnings.map(esc).join(" ")}</p>` : ""}`);
+      ecoResults.set(key, eco);
+      html = ecoKpis(r, eco, req);
     } catch (e) {
-      html = ecoCard(`<p class="alert">${ic("cloud-off")}<span>EcoLogits est indisponible pour le moment (${esc(e.message)}). Le calcul Impact'IA n'est pas affecté.</span></p>`);
+      html = `<div class="alert">${ic("cloud-off")}<span>EcoLogits est indisponible pour le moment (${esc(e.message)}). Le calcul Impact'IA n'est pas affecté.</span></div>`;
     }
-    if (seq !== ecoSeq) return; // une saisie plus récente a relancé la comparaison
-    el.innerHTML = html;
+    if (seq !== ecoSeq) return;
+    area.classList.remove("loading");
+    area.innerHTML = html;
     icons();
-  }, 600);
+    animate();
+  }, 300);
 }
-$("#ecologits").addEventListener("click", (e) => {
-  if (!e.target.closest("#eco-run")) return;
-  ecoEnabled = true;
-  renderEcologits(ecoLast.r, ecoLast.input);
+$("#results").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-rtab]");
+  if (!b || b.dataset.rtab === resultTab) return;
+  resultTab = b.dataset.rtab;
+  for (const t of document.querySelectorAll("[data-rtab]")) t.setAttribute("aria-selected", t.dataset.rtab === resultTab);
+  renderKpis();
+  icons();
+  animate();
 });
 
 // ── Animations : jauges qui se remplissent (depuis leur valeur précédente) et compteurs ──

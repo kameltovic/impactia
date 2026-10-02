@@ -137,11 +137,12 @@ Les valeurs EcoLogits 0.10.2 utilisées sont figées dans `test/ecologits-refere
 
 ## 7. Comparaison en direct avec l'API EcoLogits
 
-La section « Comparer avec EcoLogits » du calculateur interroge l'API publique d'EcoLogits (version à date, distincte de la 0.10.2 du document SNCF) :
+L'onglet « EcoLogits » des résultats annuels interroge l'API publique d'EcoLogits (version à date, distincte de la 0.10.2 du document SNCF) :
 
 - EcoLogits estime une requête : on lui envoie une **requête moyenne** du projet (tokens de sortie annuels / requêtes annuelles), avec la **latence de décodage** estimée par Impact'IA (tokens × 1/TPS, sans le préremplissage, qu'EcoLogits ne modélise pas) et la zone électrique correspondant au mix choisi ;
 - la fourchette renvoyée (min–max) est multipliée par le nombre de requêtes annuelles ;
-- le ratio affiché compare l'inférence complète d'Impact'IA au milieu de la fourchette EcoLogits ; la colonne « dont traitement des requêtes » isole la partie la plus proche du périmètre EcoLogits ;
+- la valeur affichée est le milieu de la fourchette ; le ratio de chaque carte compare l'inférence d'Impact'IA (RAG, front et traitement des requêtes, sans entraînement) à cette valeur ;
+- les autres indicateurs d'EcoLogits (ressources abiotiques, énergie primaire) sont affichés dans des cartes supplémentaires, faute d'équivalent dans Impact'IA ;
 - une intensité carbone personnalisée ne peut pas être transmise : la zone du mix par défaut est alors utilisée, et l'écran le signale.
 
 Les données envoyées sont le fournisseur, le modèle, les tokens et la latence d'une requête moyenne et la zone électrique ; aucune donnée personnelle.
