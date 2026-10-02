@@ -24,6 +24,11 @@ npm run extract   # régénère data.js après mise à jour de source.xlsx
   - si un fournisseur n'a aucun modèle publié depuis 24 mois, on compte 1 modèle actif au lieu de renvoyer `#DIV/0!`.
 - Comme dans le classeur, l'amortissement de l'entraînement dépend de la date du jour (nombre de modèles du fournisseur publiés depuis 24 mois).
 
+## Déploiement
+
+Coolify beancraft (projet « ImpactIA », Coolify refuse l'apostrophe) → https://impactia.dev.beancraft.dev.
+Image `nginx:alpine` (voir `Dockerfile`), construite depuis `kameltovic/impactia` (branche `master`) via la GitHub App Coolify.
+
 ## Licence
 
 Œuvre dérivée d'Impact'IA, publiée sous [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr) : pas d'usage commercial, même licence pour les dérivés.
