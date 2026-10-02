@@ -14,9 +14,9 @@ npm run extract   # régénère data.js après mise à jour de source.xlsx
 
 ## Fidélité au classeur
 
-- Inférence (traitement des requêtes, RAG/embedding, front) : identique aux valeurs Excel à 1e-9 près sur 4 modèles (`calc.test.js`).
-- Entraînement : porté cellule par cellule (références `[N90]` etc. dans `calc.js`), mais pas confronté à Excel : le classeur
-  enregistré n'a aucun modèle sélectionné, donc aucune valeur de référence en cache.
+- Les formules du classeur ont été recalculées hors Excel (`scripts/excel-reference.py`, lib `formulas`) pour les 39 modèles
+  sur 3 scénarios (Production France, Production USA sans RAG, Conception avec mix personnalisé) : le moteur JS retrouve
+  les mêmes totaux, entraînement compris, à 1e-15 près (`test/excel-reference.json`, vérifié par `npm test`).
 - Écarts volontaires avec le classeur, qui y calcule les modèles de comparaison différemment du modèle choisi :
   - chaque modèle comparé utilise son propre PUE et son propre nombre de modèles actifs ; le classeur réutilise ceux du modèle choisi (`$N165`, `'⚙️Données'!$F$26`) ;
   - le classeur applique `0.5*0.5*(1/PUE)*0.7` au lieu de `0.85*0.85` pour les FLOPS des modèles comparés [O115] ; ici, c'est la formule du modèle choisi partout ;

@@ -2,7 +2,7 @@
 // onglet Calcul colonnes O–R, entrées par défaut : Production, mix France).
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { compute } from "./calc.js";
+import { compute } from "../calc.js";
 
 const input = {
   phase: "production",
@@ -51,4 +51,24 @@ test("conception : tokens dérivés des usages", () => {
   assert.equal(r.project.inTokens, 10 * 5 * 400 * 5 * 365);
   assert.equal(r.project.embTokens, 0);
   assert.equal(r.project.ef, 0.3844);
+});
+
+// Valeurs produites en recalculant les formules du classeur (scripts/excel-reference.py), 39 modèles × 3 scénarios.
+test("tous les modèles = formules Excel recalculées (inférence + entraînement)", async () => {
+  const ref = JSON.parse(await import("node:fs").then((fs) => fs.readFileSync(new URL("./excel-reference.json", import.meta.url))));
+  const sc = {
+    prod_fr: input,
+    prod_usa_noemb: { phase: "production", requestsPerMonth: 2500, inputTokensPerMonth: 3e6, outputTokensPerMonth: 7e5, embeddingTokensPerMonth: 0, mixMode: "country", country: "USA" },
+    conception_custom: { phase: "conception", users: 250, requestsPerDay: 4, requestTokens: 1500, mixMode: "custom", customEf: 0.2 },
+  };
+  for (const [key, x] of Object.entries(ref)) {
+    const [s, model] = key.split("|");
+    const r = compute(model.trim(), { ...sc[s], today: new Date("2026-10-02") });
+    const mine = {
+      total_kwh: r.total.kwh, total_gwp: r.total.gwp, total_water: r.total.water,
+      train_kwh: r.training.kwh, train_gwp: r.training.gwp, train_water: r.training.water,
+      req_kwh: r.steps[5].kwh, req_gwp: r.steps[5].gwp, req_water: r.steps[5].water, gpus: r.gpus,
+    };
+    for (const [k, v] of Object.entries(mine)) close(v, x[k], `${key} ${k}`);
+  }
 });
