@@ -1,18 +1,18 @@
-"""Recalcule les vraies formules du classeur (onglet Calcul) avec la lib `formulas`, pour 3 scénarios x tous les modèles.
-Sert à produire les valeurs de référence comparées au moteur JS. Le fichier brut produit garde toutes les cellules ;
-test/excel-reference.json n'en conserve qu'un extrait.
+"""Recalcule les vraies formules du classeur (onglet Calcul) avec la lib `formulas`, pour 3 scénarios x tous les modèles,
+et écrit les valeurs de référence comparées au moteur JS par les tests (test/excel-reference.json).
 
-    uv run --with openpyxl --with formulas scripts/excel-reference.py /tmp/excel.json
+    npm run excel-reference              # = uv run --with openpyxl --with formulas scripts/excel-reference.py
 
 Pré-traitement : références structurées -> plages, TODAY() figé au 2026-10-02, formules dynamiques (FILTER/UNIQUE) -> valeurs.
 Scénario Conception : le champ masqué « requêtes / mois » (D36) est aligné sur les usages, comme dans calc.js."""
-import json, re, sys, warnings
+import json, os, re, sys, tempfile, warnings
 import openpyxl, formulas
 from openpyxl.worksheet.formula import ArrayFormula
 
 warnings.filterwarnings("ignore")
 SRC = "source.xlsx"
-OUT = sys.argv[1]
+OUT = sys.argv[1] if len(sys.argv) > 1 else "test/excel-reference.json"
+KEEP = ["total_kwh", "total_gwp", "total_water", "train_kwh", "train_gwp", "train_water", "req_kwh", "req_gwp", "req_water", "gpus"]
 src = openpyxl.load_workbook(SRC)
 val = openpyxl.load_workbook(SRC, data_only=True)
 
@@ -73,7 +73,7 @@ for ws in src.worksheets:
 D = out["⚙️Données"]
 for k, v in {"F26": "OpenAI", "J26": "GPT-4o", "B43": 2, "H44": "France", "K44": 0.1, "D33": "Echange court (≈ 400 tokens)"}.items():
     D[k] = v
-tmp = OUT + ".xlsx"
+tmp = os.path.join(tempfile.mkdtemp(), "recalc.xlsx")
 out.save(tmp)
 
 xl = formulas.ExcelModel().loads(tmp).finish()
@@ -105,4 +105,5 @@ for sname, sc in scenarios.items():
             row[k] = float(v) if isinstance(v, (int, float)) or hasattr(v, "__float__") and not isinstance(v, str) else str(v)
         res[f"{sname}|{mname}"] = row
     print(sname, "ok", flush=True)
-json.dump(res, open(OUT, "w"), indent=0, default=str)
+json.dump({k: {f: v[f] for f in KEEP} for k, v in res.items()}, open(OUT, "w"), ensure_ascii=False, separators=(",", ":"))
+print(f"{len(res)} cas écrits dans {OUT}")

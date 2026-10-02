@@ -1,34 +1,43 @@
 # Impact'IA — version web
 
-Version web de la calculatrice [Impact'IA](https://github.com/SNCFdevelopers/ImpactIA) (SNCF, Resilio, Wavestone) :
-électricité, GES et eau d'un projet mobilisant un modèle d'IA générative, sur un an.
+Version web de la calculatrice [Impact'IA](https://github.com/SNCFdevelopers/ImpactIA), conçue par la Direction RSE et la Direction du Numérique Responsable du groupe SNCF avec Resilio et Wavestone. Elle estime l'empreinte environnementale annuelle d'un projet mobilisant un modèle d'IA générative : électricité, gaz à effet de serre et eau, et toute autre dimension que l'on y ajoute.
 
-Site statique sans dépendance ni build : `index.html` + `app.js` (interface) + `calc.js` (portage de l'onglet « Calcul »)
-+ `data.js` (modèles et facteurs d'émission, générés depuis `source.xlsx`).
+Démonstration : https://impactia.dev.beancraft.dev · Back-office : https://impactia.dev.beancraft.dev/admin.html
+
+## En bref
+
+- **Fidèle au classeur.** Le moteur reproduit les formules de l'Excel à 1e-9 près (39 modèles × 3 scénarios, vérifié par les tests).
+- **Paramètres séparés du code.** Modèles, hypothèses, facteurs, mix électriques et contenus sont dans `data.json` ; chaque paramètre indique son unité, sa variable Excel et sa cellule d'origine.
+- **Indépendant des fournisseurs.** N'importe quel fournisseur ou modèle peut être ajouté ; le code ne contient aucun nom de modèle.
+- **Dimensions extensibles.** Un nouvel indicateur se déclare par ses facteurs dans `data.json` (ou le back-office), sans toucher au code.
+- **Back-office statique.** Édition, validation en direct et aperçu dans le navigateur, puis export de `data.json` à commiter. Aucun serveur ni base de données.
+- **Simple à maintenir.** HTML, CSS et JavaScript sans framework ni compilation ; bibliothèques copiées dans `vendor/` ; tests avec le lanceur intégré de Node.
+
+## Démarrer
 
 ```bash
-npm run dev       # https://impactia-web.localhost (portless)
-npm test          # compare le moteur aux valeurs calculées par Excel
-npm run extract   # régénère data.js après mise à jour de source.xlsx
+npm install
+python3 -m http.server 8000   # http://localhost:8000 et http://localhost:8000/admin.html
+npm test
 ```
 
-## Fidélité au classeur
+| Commande | Rôle |
+|---|---|
+| `npm test` | Tests de non-régression (Excel, simulations Ecologits, propriétés du moteur). |
+| `npm run dev` | Serveur local via portless (https://impactia-web.localhost). |
+| `npm run extract` | Synchronise `data.json` avec `source.xlsx` (Python + `uv`). |
+| `npm run excel-reference` | Recalcule les formules du classeur pour régénérer les valeurs de référence des tests. |
+| `npm run vendor` | Recopie les bibliothèques front dans `vendor/`. |
 
-- Les formules du classeur ont été recalculées hors Excel (`scripts/excel-reference.py`, lib `formulas`) pour les 39 modèles
-  sur 3 scénarios (Production France, Production USA sans RAG, Conception avec mix personnalisé) : le moteur JS retrouve
-  les mêmes totaux, entraînement compris, à 1e-15 près (`test/excel-reference.json`, vérifié par `npm test`).
-- Écarts volontaires avec le classeur, qui y calcule les modèles de comparaison différemment du modèle choisi :
-  - chaque modèle comparé utilise son propre PUE et son propre nombre de modèles actifs ; le classeur réutilise ceux du modèle choisi (`$N165`, `'⚙️Données'!$F$26`) ;
-  - le classeur applique `0.5*0.5*(1/PUE)*0.7` au lieu de `0.85*0.85` pour les FLOPS des modèles comparés [O115] ; ici, c'est la formule du modèle choisi partout ;
-  - en phase Conception, le nombre de requêtes mensuelles du préremplissage [N191] est dérivé des usages au lieu d'être lu dans le champ masqué de la phase Production ;
-  - si un fournisseur n'a aucun modèle publié depuis 24 mois, on compte 1 modèle actif au lieu de renvoyer `#DIV/0!`.
-- Comme dans le classeur, l'amortissement de l'entraînement dépend de la date du jour (nombre de modèles du fournisseur publiés depuis 24 mois).
+## Documentation
 
-## Déploiement
+- [Guide de maintenance](docs/MAINTENANCE.md) : architecture, format de `data.json`, ajouter un modèle, un paramètre ou une dimension, publier, tester, déployer.
+- [Méthodologie](docs/METHODOLOGIE.md) : formules par étape avec les cellules Excel correspondantes, particularités du classeur conservées, écarts volontaires, écarts relevés entre le guide méthodologique et le classeur.
 
-Coolify beancraft (projet « ImpactIA », Coolify refuse l'apostrophe) → https://impactia.dev.beancraft.dev.
-Image `nginx:alpine` (voir `Dockerfile`), construite depuis `kameltovic/impactia` (branche `master`) via la GitHub App Coolify.
+## Déploiement de démonstration
+
+Coolify beancraft (projet « ImpactIA » : Coolify refuse l'apostrophe), image `nginx:alpine` (voir `Dockerfile`), construite depuis `kameltovic/impactia` (branche `master`).
 
 ## Licence
 
-Œuvre dérivée d'Impact'IA, publiée sous [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr) : pas d'usage commercial, même licence pour les dérivés.
+Œuvre dérivée d'Impact'IA, publiée sous la même licence [CC BY-NC-SA 4.0](LICENSE) : attribution, pas d'usage commercial, partage dans les mêmes conditions. Les bibliothèques de `vendor/` gardent leur licence (Lucide ISC, Tom Select Apache-2.0, flag-icons MIT, Lobe Icons MIT).
